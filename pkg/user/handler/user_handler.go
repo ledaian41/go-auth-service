@@ -1,7 +1,7 @@
 package user_handler
 
 import (
-	"auth/internal/user/model"
+	"auth/pkg/user/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

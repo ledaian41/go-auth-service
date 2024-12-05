@@ -1,9 +1,9 @@
 package auth_service
 
 import (
-	"auth/internal/auth/model"
-	"auth/internal/user/model"
-	"auth/internal/user/service"
+	"auth/pkg/auth/model"
+	"auth/pkg/user/model"
+	"auth/pkg/user/service"
 	"errors"
 	"strings"
 )

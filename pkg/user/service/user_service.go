@@ -1,7 +1,7 @@
 package user_service
 
 import (
-	"auth/internal/user/model"
+	"auth/pkg/user/model"
 	"errors"
 )
 

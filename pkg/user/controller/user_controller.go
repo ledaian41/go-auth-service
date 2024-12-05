@@ -1,7 +1,7 @@
 package user_controller
 
 import (
-	"auth/internal/user/handler"
+	"auth/pkg/user/handler"
 	"github.com/gin-gonic/gin"
 )
 

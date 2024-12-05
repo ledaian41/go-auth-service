@@ -1,9 +1,9 @@
 package auth_handler
 
 import (
-	"auth/internal/auth/model"
-	"auth/internal/auth/service"
-	"auth/pkg/utils"
+	"auth/pkg/auth/model"
+	"auth/pkg/auth/service"
+	"auth/pkg/auth/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -21,13 +21,13 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, err := auth_utils.GenerateJwtToken(user.Username)
+	token, err := utils.GenerateJwtToken(user.Username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JWT create failed"})
 		return
 	}
 
-	auth_utils.SetCookieToken(c, token)
+	utils.SetCookieToken(c, token)
 	c.JSON(http.StatusOK, gin.H{"message": "Register Success", "user": user.Response()})
 }
 
@@ -41,13 +41,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := auth_utils.GenerateJwtToken(username)
+	token, err := utils.GenerateJwtToken(username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JWT create failed"})
 		return
 	}
 
-	auth_utils.SetCookieToken(c, token)
+	utils.SetCookieToken(c, token)
 	c.IndentedJSON(http.StatusOK, user.Response())
 }
 
@@ -64,7 +64,7 @@ func JWT(c *gin.Context) {
 		return
 	}
 
-	claims, err := auth_utils.ExtractJwtToken(tokenStr)
+	claims, err := utils.ExtractJwtToken(tokenStr)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to parse JWT token"})
 		return

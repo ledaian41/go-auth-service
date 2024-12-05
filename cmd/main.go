@@ -1,8 +1,8 @@
 package main
 
 import (
-	"auth/internal/auth/controller"
-	"auth/internal/user/controller"
+	"auth/pkg/auth/controller"
+	"auth/pkg/user/controller"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
