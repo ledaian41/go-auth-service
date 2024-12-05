@@ -2,6 +2,8 @@ package utils
 
 import (
 	"auth/config"
+	site_model "auth/pkg/site/model"
+	user_model "auth/pkg/user/model"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -12,15 +14,32 @@ import (
 
 func SetCookieToken(c *gin.Context, token string) {
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("jwt", token, 3600*24*7, "", "", false, true)
+	site, _ := c.Get("site")
+	siteId := site.(*site_model.Site).ID
+	c.SetCookie("jwt-"+siteId, token, 60*30, "", "", false, true)
 }
 
-func GenerateJwtToken(userId string) (string, error) {
+func GetCookieToken(c *gin.Context) (string, error) {
+	site, _ := c.Get("site")
+	siteId := site.(*site_model.Site).ID
+	return c.Cookie("jwt-" + siteId)
+}
+
+func DestroyCookieToken(c *gin.Context) {
+	site, _ := c.Get("site")
+	siteId := site.(*site_model.Site).ID
+	c.SetCookie("jwt-"+siteId, "", 0, "", "", false, true)
+}
+
+func GenerateJwtToken(user *user_model.User) (string, error) {
 	appConfig := config.LoadConfig()
 	// Create JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user": userId,
-		"ttl":  time.Now().Add(time.Hour * 24 * 7).Unix(), // 30 days
+		"user":  user.Username,
+		"email": user.Email,
+		"role":  user.Role,
+		"site":  user.Site,
+		"ttl":   time.Now().Add(time.Minute * 30).Unix(), // 30 minutes
 	})
 
 	// Sign, get the complete encoded token as a string

@@ -10,6 +10,8 @@ type User struct {
 	PhoneNumber string
 	Email       string
 	Avatar      string
+	Role        string
+	Site        string
 }
 
 type UserResponse struct {
@@ -45,6 +47,8 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "harry@gmail.com",
 		Avatar:      "",
+		Role:        "admin",
+		Site:        "lexis",
 	},
 	{
 		Username:    "An",
@@ -54,6 +58,8 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "ledaian41@gmail.com",
 		Avatar:      "",
+		Role:        "manager",
+		Site:        "lexis",
 	}}
 
 func GetById(userId string) (*User, error) {

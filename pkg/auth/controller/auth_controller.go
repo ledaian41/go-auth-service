@@ -6,8 +6,8 @@ import (
 )
 
 func Router(r *gin.Engine) {
-	r.GET("/jwt", auth_handler.JWT)
-	r.POST("/signup", auth_handler.Register)
-	r.POST("/login", auth_handler.Login)
-	r.GET("/signout", auth_handler.Logout)
+	r.GET("/:siteId/jwt", auth_handler.JWT)
+	r.POST("/:siteId/signup", auth_handler.Register)
+	r.POST("/:siteId/login", auth_handler.Login)
+	r.GET("/:siteId/signout", auth_handler.Logout)
 }

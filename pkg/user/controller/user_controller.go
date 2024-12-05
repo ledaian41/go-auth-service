@@ -6,5 +6,5 @@ import (
 )
 
 func Router(r *gin.Engine) {
-	r.GET("/users", user_handler.GetUserList)
+	r.GET("/:siteId/users", user_handler.GetUserList)
 }

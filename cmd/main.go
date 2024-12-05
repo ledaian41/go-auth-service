@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth/middleware"
 	"auth/pkg/auth/controller"
 	"auth/pkg/user/controller"
 	"github.com/gin-gonic/gin"
@@ -14,9 +15,11 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	auth_controller.Router(r)
+	r.Use(middleware.SiteMiddleware())
 
-	user_controller.Router(r)
+	go auth_controller.Router(r)
+
+	go user_controller.Router(r)
 
 	r.Run("localhost:8080")
 }

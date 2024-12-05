@@ -11,77 +11,84 @@ import (
 func Register(c *gin.Context) {
 	var newAccount auth_model.RegisterAccount
 	if err := c.ShouldBind(&newAccount); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	user, err := auth_service.CreateNewAccount(&newAccount)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	token, err := utils.GenerateJwtToken(user.Username)
+	token, err := utils.GenerateJwtToken(user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JWT create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "JWT create failed"})
 		return
 	}
 
 	utils.SetCookieToken(c, token)
-	c.JSON(http.StatusOK, gin.H{"message": "Register Success", "user": user.Response()})
+	c.JSON(http.StatusOK, gin.H{"message": "Register Success", "token": token})
 }
 
 func Login(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	user, err := auth_service.CheckValidUser(username, password)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var loginAccount auth_model.LoginAccount
+	if err := c.ShouldBind(&loginAccount); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	token, err := utils.GenerateJwtToken(username)
+	user, err := auth_service.CheckValidUser(loginAccount.Username, loginAccount.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JWT create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	token, err := utils.GenerateJwtToken(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "JWT create failed"})
 		return
 	}
 
 	utils.SetCookieToken(c, token)
-	c.IndentedJSON(http.StatusOK, user.Response())
+	c.IndentedJSON(http.StatusOK, gin.H{"token": token})
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("jwt", "", 0, "", "", false, true)
+	utils.DestroyCookieToken(c)
 	c.Status(http.StatusOK)
 }
 
 func JWT(c *gin.Context) {
 	// Get token from Cookie
-	tokenStr, err := c.Cookie("jwt")
+	tokenStr, err := utils.GetCookieToken(c)
 	if err != nil || len(tokenStr) == 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No jwt token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "No jwt token"})
 		return
 	}
 
 	claims, err := utils.ExtractJwtToken(tokenStr)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to parse JWT token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Failed to parse JWT token"})
 		return
 	}
 
 	// Extract user from token
 	userId := claims["user"]
 	if userId == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not found"})
 		return
 	}
 
-	user, err := auth_service.GetSessionUser(userId.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, user.Response())
+	c.JSON(http.StatusOK, gin.H{
+		"username": claims["user"].(string),
+		"email":    claims["email"].(string),
+		"role":     claims["role"].(string),
+		"site":     claims["site"].(string),
+	})
 }
