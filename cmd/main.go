@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "auth/api"
+	_ "auth/docs"
 	"auth/middleware"
 	"auth/pkg/auth/controller"
 	"auth/pkg/user/controller"
