@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"auth/pkg/auth/service"
-	"auth/pkg/auth/utils"
 	"auth/pkg/site/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -13,7 +12,7 @@ func SiteMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		siteId := c.Param("siteId")
 		if strings.Trim(siteId, " ") == "" {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "site not found"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "siteId not found"})
 			return
 		}
 
@@ -30,13 +29,13 @@ func SiteMiddleware() gin.HandlerFunc {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookieToken(c)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+		accessToken := c.GetHeader("Authorization")
+		if accessToken == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "no access token"})
 			return
 		}
 
-		claims, err := auth_service.ExtractJwtToken(c, tokenStr)
+		claims, err := auth_service.ValidateAccessToken(c, accessToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 			return

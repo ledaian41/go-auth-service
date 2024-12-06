@@ -43,7 +43,7 @@ func (user User) Validate() (bool, error) {
 var UserList = []User{
 	{
 		Username:    "admin",
-		Password:    "123456",
+		Password:    "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
 		Name:        "Harry",
 		DOB:         "11/07/2024",
 		PhoneNumber: "0703940225",
@@ -54,7 +54,7 @@ var UserList = []User{
 	},
 	{
 		Username:    "An",
-		Password:    "123456",
+		Password:    "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
 		Name:        "Le Dai An",
 		DOB:         "04/01/1995",
 		PhoneNumber: "0703940225",

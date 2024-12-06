@@ -10,7 +10,7 @@ func SetCookieToken(c *gin.Context, token string) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	site, _ := c.Get("site")
 	siteId := site.(*site_model.Site).ID
-	c.SetCookie("jwt-"+siteId, token, 60*30, "", "", false, true)
+	c.SetCookie("jwt-"+siteId, token, 3600*24*7, "", "", false, true) // 1 week
 }
 
 func GetCookieToken(c *gin.Context) (string, error) {

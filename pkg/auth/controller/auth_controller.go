@@ -8,6 +8,7 @@ import (
 
 func Router(r *gin.Engine) {
 	r.GET("/:siteId/jwt", middleware.AuthMiddleware(), auth_handler.JWT)
+	r.GET("/:siteId/refresh", auth_handler.RefreshToken)
 	r.POST("/:siteId/signup", auth_handler.Register)
 	r.POST("/:siteId/login", auth_handler.Login)
 	r.GET("/:siteId/signout", auth_handler.Logout)

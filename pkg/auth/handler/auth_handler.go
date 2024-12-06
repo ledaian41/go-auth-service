@@ -1,9 +1,11 @@
 package auth_handler
 
 import (
-	"auth/pkg/auth/model"
+	auth_model "auth/pkg/auth/model"
 	"auth/pkg/auth/service"
 	"auth/pkg/auth/utils"
+	site_model "auth/pkg/site/model"
+	user_model "auth/pkg/user/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
@@ -22,14 +24,20 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, err := auth_service.GenerateJwtToken(c, user)
+	accessToken, err := auth_service.GenerateAccessToken(c, user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "jwt create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
 	}
 
-	utils.SetCookieToken(c, token)
-	c.JSON(http.StatusOK, gin.H{"message": "register success", "token": token})
+	refreshToken, err := auth_service.GenerateRefreshToken(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
+		return
+	}
+
+	utils.SetCookieToken(c, refreshToken)
+	c.JSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
 func Login(c *gin.Context) {
@@ -45,19 +53,60 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := auth_service.GenerateJwtToken(c, user)
+	accessToken, err := auth_service.GenerateAccessToken(c, user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "jwt create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
 	}
 
-	utils.SetCookieToken(c, token)
-	c.IndentedJSON(http.StatusOK, gin.H{"token": token})
+	refreshToken, err := auth_service.GenerateRefreshToken(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
+		return
+	}
+
+	utils.SetCookieToken(c, refreshToken)
+	c.IndentedJSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
 func Logout(c *gin.Context) {
 	utils.DestroyCookieToken(c)
 	c.Status(http.StatusOK)
+}
+
+func RefreshToken(c *gin.Context) {
+	refreshToken, err := utils.GetCookieToken(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
+		return
+	}
+
+	claims, err := auth_service.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+		return
+	}
+
+	siteObj, _ := c.Get("site")
+	site := siteObj.(*site_model.Site)
+	if site.ID != claims["site"].(string) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "site not matched"})
+		return
+	}
+
+	user, err := user_model.GetById(claims["user"].(string))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+		return
+	}
+
+	accessToken, err := auth_service.GenerateAccessToken(c, user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
 func JWT(c *gin.Context) {

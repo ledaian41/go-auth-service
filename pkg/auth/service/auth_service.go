@@ -1,6 +1,7 @@
 package auth_service
 
 import (
+	"auth/config"
 	"auth/pkg/auth/model"
 	"auth/pkg/site/model"
 	"auth/pkg/user/model"
@@ -12,6 +13,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
+)
+
+var (
+	accessExpireTime  = time.Minute * 30   // 30 minutes
+	refreshExpireTime = time.Hour * 24 * 7 // 1 week
 )
 
 func CheckValidUser(username string, password string) (*user_model.User, error) {
@@ -64,40 +70,72 @@ func HashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func GenerateJwtToken(c *gin.Context, user *user_model.User) (string, error) {
-	secretKey, err := SecretKeyBySite(c)
+func GenerateAccessToken(c *gin.Context, user *user_model.User) (string, error) {
+	siteSecretKey, err := SecretKeyBySite(c)
 	if err != nil {
 		return "", err
 	}
 
-	// Create JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user":  user.Username,
 		"role":  user.Role,
 		"name":  user.Name,
 		"email": user.Email,
 		"phone": user.PhoneNumber,
-		"ttl":   time.Now().Add(time.Minute * 30).Unix(), // 30 minutes
+		"ttl":   time.Now().Add(accessExpireTime).Unix(),
 	})
 
 	// Sign, get the complete encoded token as a string
-	return token.SignedString([]byte(secretKey))
+	return token.SignedString([]byte(siteSecretKey))
 }
 
-func ExtractJwtToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error) {
-	secretKey, err := SecretKeyBySite(c)
+func ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error) {
+	siteSecretKey, err := SecretKeyBySite(c)
 	if err != nil {
 		return nil, err
 	}
-
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
+		return []byte(siteSecretKey), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
 
-		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(secretKey), nil
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token")
+	}
+
+	// Check expiry of token
+	if claims["ttl"].(float64) < float64(time.Now().Unix()) {
+		return nil, errors.New("token expired")
+	}
+
+	return claims, nil
+}
+
+func GenerateRefreshToken(user *user_model.User) (string, error) {
+	appConfig := config.LoadConfig()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user": user.Username,
+		"site": user.Site,
+		"ttl":  time.Now().Add(refreshExpireTime).Unix(),
+	})
+
+	// Sign, get the complete encoded token as a string
+	return token.SignedString([]byte(appConfig.SecretKey))
+}
+
+func ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
+	appConfig := config.LoadConfig()
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(appConfig.SecretKey), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, errors.New("invalid token")
