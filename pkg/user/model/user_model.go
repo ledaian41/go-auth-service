@@ -1,17 +1,23 @@
 package user_model
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+)
 
 type User struct {
-	Username    string
-	Password    string
-	Name        string
-	DOB         string
-	PhoneNumber string
-	Email       string
-	Avatar      string
-	Role        []string
-	Site        string
+	Username    string   `json:"username"`
+	Password    string   `json:"password"`
+	Name        string   `json:"name"`
+	DOB         string   `json:"dob"`
+	PhoneNumber string   `json:"phone_number"`
+	Email       string   `json:"email"`
+	Avatar      string   `json:"avatar"`
+	Role        []string `json:"role"`
+	Site        string   `json:"site"`
 }
 
 type UserResponse struct {
@@ -40,29 +46,28 @@ func (user User) Validate() (bool, error) {
 	return true, nil
 }
 
-var UserList = []User{
-	{
-		Username:    "admin",
-		Password:    "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
-		Name:        "Harry",
-		DOB:         "11/07/2024",
-		PhoneNumber: "0703940225",
-		Email:       "harry@gmail.com",
-		Avatar:      "",
-		Role:        []string{"admin", "user"},
-		Site:        "lexis",
-	},
-	{
-		Username:    "An",
-		Password:    "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
-		Name:        "Le Dai An",
-		DOB:         "04/01/1995",
-		PhoneNumber: "0703940225",
-		Email:       "ledaian41@gmail.com",
-		Avatar:      "",
-		Role:        []string{"manager", "user"},
-		Site:        "lexis",
-	}}
+var UserList []User
+
+func LoadUsersFromFile(filePath string) error {
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("file does not exist")
+	}
+
+	// Read the file contents
+	fileData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal the JSON data into the UserList slice
+	err = json.Unmarshal(fileData, &UserList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func GetById(userId string) (*User, error) {
 	for _, user := range UserList {

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"auth/pkg/auth/service"
-	"auth/pkg/site/service"
+	auth_service "auth/pkg/auth/service"
+	site_service "auth/pkg/site/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"

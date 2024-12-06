@@ -1,0 +1,68 @@
+[
+  {
+    "username": "admin",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "admin",
+    "dob": "01/01/2024",
+    "phone_number": "0123456789",
+    "email": "admin@gmail.com",
+    "avatar": "",
+    "role": [
+      "admin"
+    ],
+    "site": "lexis"
+  },
+  {
+    "username": "admin",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "admin",
+    "dob": "01/01/2024",
+    "phone_number": "0123456789",
+    "email": "admin@gmail.com",
+    "avatar": "",
+    "role": [
+      "admin"
+    ],
+    "site": "app"
+  },
+  {
+    "username": "an",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "Le Dai An",
+    "dob": "04/01/1995",
+    "phone_number": "0703940225",
+    "email": "ledaian41@gmail.com",
+    "avatar": "",
+    "role": [
+      "admin",
+      "user"
+    ],
+    "site": "lexis"
+  },
+  {
+    "username": "anonymous",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "Anonymous",
+    "dob": "01/01/2024",
+    "phone_number": "0123456789",
+    "email": "anonymous@gmail.com",
+    "avatar": "",
+    "role": [
+      "user"
+    ],
+    "site": "app"
+  },
+  {
+    "username": "anonymous",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "Anonymous",
+    "dob": "01/01/2024",
+    "phone_number": "0123456789",
+    "email": "anonymous@gmail.com",
+    "avatar": "",
+    "role": [
+      "user"
+    ],
+    "site": "lexis"
+  }
+]

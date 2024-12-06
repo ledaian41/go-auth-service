@@ -3,8 +3,9 @@ package main
 import (
 	_ "auth/docs"
 	"auth/middleware"
-	"auth/pkg/auth/controller"
-	"auth/pkg/user/controller"
+	auth_controller "auth/pkg/auth/controller"
+	user_controller "auth/pkg/user/controller"
+	user_model "auth/pkg/user/model"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
@@ -18,6 +19,8 @@ import (
 // @BasePath /
 func main() {
 	r := gin.Default()
+
+	_ = user_model.LoadUsersFromFile("./pkg/user/data/userData.json")
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
