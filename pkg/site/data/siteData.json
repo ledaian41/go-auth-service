@@ -1,6 +1,12 @@
 [
   {
     "id": "lexis",
-    "name": "Lexis"
+    "name": "Lexis",
+    "secret_key": "@site_lexis_secret_key"
+  },
+  {
+    "id": "app",
+    "name": "App",
+    "secret_key": "@site_app_secret_key"
   }
 ]

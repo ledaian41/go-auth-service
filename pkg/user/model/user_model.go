@@ -10,17 +10,18 @@ type User struct {
 	PhoneNumber string
 	Email       string
 	Avatar      string
-	Role        string
+	Role        []string
 	Site        string
 }
 
 type UserResponse struct {
-	Username    string `json:"username"`
-	Name        string `json:"name"`
-	DOB         string `json:"dob"`
-	PhoneNumber string `json:"phone"`
-	Email       string `json:"email"`
-	Avatar      string `json:"avatar"`
+	Username    string   `json:"username"`
+	Name        string   `json:"name"`
+	DOB         string   `json:"dob"`
+	PhoneNumber string   `json:"phone"`
+	Email       string   `json:"email"`
+	Avatar      string   `json:"avatar"`
+	Role        []string `json:"role"`
 }
 
 func (user User) Response() UserResponse {
@@ -31,6 +32,7 @@ func (user User) Response() UserResponse {
 		PhoneNumber: user.PhoneNumber,
 		Email:       user.Email,
 		Avatar:      user.Avatar,
+		Role:        user.Role,
 	}
 }
 
@@ -47,7 +49,7 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "harry@gmail.com",
 		Avatar:      "",
-		Role:        "admin",
+		Role:        []string{"admin"},
 		Site:        "lexis",
 	},
 	{
@@ -58,7 +60,7 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "ledaian41@gmail.com",
 		Avatar:      "",
-		Role:        "manager",
+		Role:        []string{"manager"},
 		Site:        "lexis",
 	}}
 

@@ -5,6 +5,7 @@ import (
 	"auth/pkg/auth/service"
 	"auth/pkg/auth/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
 
@@ -21,14 +22,14 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJwtToken(user)
+	token, err := auth_service.GenerateJwtToken(c, user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "JWT create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "jwt create failed"})
 		return
 	}
 
 	utils.SetCookieToken(c, token)
-	c.JSON(http.StatusOK, gin.H{"message": "Register Success", "token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "register success", "token": token})
 }
 
 func Login(c *gin.Context) {
@@ -44,9 +45,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJwtToken(user)
+	token, err := auth_service.GenerateJwtToken(c, user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "JWT create failed"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "jwt create failed"})
 		return
 	}
 
@@ -60,35 +61,18 @@ func Logout(c *gin.Context) {
 }
 
 func JWT(c *gin.Context) {
-	// Get token from Cookie
-	tokenStr, err := utils.GetCookieToken(c)
-	if err != nil || len(tokenStr) == 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "No jwt token"})
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
 		return
 	}
 
-	claims, err := utils.ExtractJwtToken(tokenStr)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Failed to parse JWT token"})
-		return
-	}
-
-	// Extract user from token
-	userId := claims["user"]
-	if userId == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not found"})
-		return
-	}
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-
+	mapClaims := claims.(jwt.MapClaims)
 	c.JSON(http.StatusOK, gin.H{
-		"username": claims["user"].(string),
-		"email":    claims["email"].(string),
-		"role":     claims["role"].(string),
-		"site":     claims["site"].(string),
+		"username": mapClaims["user"].(string),
+		"role":     utils.ToStringSlice(mapClaims["role"].([]interface{})),
+		"name":     mapClaims["name"].(string),
+		"email":    mapClaims["email"].(string),
+		"phone":    mapClaims["phone"].(string),
 	})
 }
