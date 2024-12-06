@@ -1,0 +1,47 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: The Core Authentication Service is a microservice designed to handle
+    user authentication and provide JWT tokens for secure access. Third-party applications
+    can integrate with this service to authenticate users and validate their identities.
+  title: Authentication Service API
+  version: "1.0"
+paths:
+  /:siteId/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with username and password
+      parameters:
+      - description: User's username
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
+      - description: User's password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - Authentication
+swagger: "2.0"
