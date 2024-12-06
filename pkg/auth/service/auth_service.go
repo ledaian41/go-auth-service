@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
 )
@@ -27,21 +28,40 @@ func CheckValidUser(username string, password string) (*user_model.User, error) 
 		return nil, err
 	}
 
-	if user.Password != password {
+	if !CheckPasswordHash(password, user.Password) {
 		return nil, errors.New("invalid username or password")
 	}
 
 	return user, nil
 }
 
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func CreateNewAccount(account *auth_model.RegisterAccount) (*user_model.User, error) {
+	hashedPassword, err := HashPassword(account.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	newUser := user_model.User{
 		Username:    account.Username,
-		Password:    account.Password,
+		Password:    hashedPassword,
 		PhoneNumber: account.PhoneNumber,
 		Email:       account.Email,
+		Role:        []string{"user"},
 	}
 	return user_service.CreateNewUser(&newUser)
+}
+
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
 }
 
 func GenerateJwtToken(c *gin.Context, user *user_model.User) (string, error) {

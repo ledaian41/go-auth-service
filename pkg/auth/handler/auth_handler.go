@@ -68,9 +68,16 @@ func JWT(c *gin.Context) {
 	}
 
 	mapClaims := claims.(jwt.MapClaims)
+	role := mapClaims["role"]
+	if role == nil {
+		role = ""
+	} else {
+		role = utils.ToStringSlice(role.([]interface{}))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"username": mapClaims["user"].(string),
-		"role":     utils.ToStringSlice(mapClaims["role"].([]interface{})),
+		"role":     role,
 		"name":     mapClaims["name"].(string),
 		"email":    mapClaims["email"].(string),
 		"phone":    mapClaims["phone"].(string),

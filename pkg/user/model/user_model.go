@@ -49,7 +49,7 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "harry@gmail.com",
 		Avatar:      "",
-		Role:        []string{"admin"},
+		Role:        []string{"admin", "user"},
 		Site:        "lexis",
 	},
 	{
@@ -60,7 +60,7 @@ var UserList = []User{
 		PhoneNumber: "0703940225",
 		Email:       "ledaian41@gmail.com",
 		Avatar:      "",
-		Role:        []string{"manager"},
+		Role:        []string{"manager", "user"},
 		Site:        "lexis",
 	}}
 
