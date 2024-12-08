@@ -1,9 +1,9 @@
 package site_data
 
 import (
-	"auth/pkg/site/model"
 	"encoding/json"
 	"fmt"
+	site_model "go-auth-service/pkg/site/model"
 	"io"
 	"os"
 )

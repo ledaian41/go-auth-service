@@ -1,26 +1,36 @@
 package auth_service
 
 import (
-	"auth/config"
-	"auth/pkg/auth/model"
-	"auth/pkg/site/model"
-	"auth/pkg/user/model"
-	"auth/pkg/user/service"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
+	"go-auth-service/config"
+	shared_dto "go-auth-service/pkg/shared/dto"
+	shared_interface "go-auth-service/pkg/shared/interface"
+	shared_utils "go-auth-service/pkg/shared/utils"
 	"strings"
 	"time"
 )
 
 var (
-	accessExpireTime  = time.Minute * 30   // 30 minutes
+	accessExpireTime  = time.Minute * 15   // 15 minutes
 	refreshExpireTime = time.Hour * 24 * 7 // 1 week
 )
 
-func CheckValidUser(username string, password string) (*user_model.User, error) {
+type AuthService struct {
+	userService shared_interface.UserServiceInterface
+	secretKey   string
+}
+
+func NewAuthService(userService shared_interface.UserServiceInterface, secretKey string) *AuthService {
+	return &AuthService{
+		userService: userService,
+		secretKey:   secretKey,
+	}
+}
+
+func (s *AuthService) CheckValidUser(username string, password string) (*shared_dto.UserDTO, error) {
 	if len(strings.Trim(username, " ")) == 0 {
 		return nil, errors.New("invalid username or password")
 	}
@@ -29,48 +39,35 @@ func CheckValidUser(username string, password string) (*user_model.User, error) 
 		return nil, errors.New("invalid username or password")
 	}
 
-	user, err := user_model.GetById(username)
+	user, err := s.FindUserByUsername(username)
 	if err != nil {
 		return nil, err
 	}
 
-	if !CheckPasswordHash(password, user.Password) {
+	if !shared_utils.CheckHashPassword(password, user.Password) {
 		return nil, errors.New("invalid username or password")
 	}
 
 	return user, nil
 }
 
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func CreateNewAccount(account *auth_model.RegisterAccount) (*user_model.User, error) {
-	hashedPassword, err := HashPassword(account.Password)
+func (s *AuthService) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error) {
+	hashedPassword, err := shared_utils.HashPassword(account.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser := user_model.User{
+	newUser := shared_dto.UserDTO{
 		Username:    account.Username,
 		Password:    hashedPassword,
 		PhoneNumber: account.PhoneNumber,
 		Email:       account.Email,
 		Role:        []string{"user"},
 	}
-	return user_service.CreateNewUser(&newUser)
+	return s.userService.CreateNewUser(&newUser)
 }
 
-func HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
-}
-
-func GenerateAccessToken(c *gin.Context, user *user_model.User) (string, error) {
+func (s *AuthService) GenerateAccessToken(c *gin.Context, user *shared_dto.UserDTO) (string, error) {
 	siteSecretKey, err := SecretKeyBySite(c)
 	if err != nil {
 		return "", err
@@ -89,7 +86,7 @@ func GenerateAccessToken(c *gin.Context, user *user_model.User) (string, error) 
 	return token.SignedString([]byte(siteSecretKey))
 }
 
-func ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error) {
+func (s *AuthService) ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error) {
 	siteSecretKey, err := SecretKeyBySite(c)
 	if err != nil {
 		return nil, err
@@ -117,7 +114,7 @@ func ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error)
 	return claims, nil
 }
 
-func GenerateRefreshToken(user *user_model.User) (string, error) {
+func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, error) {
 	appConfig := config.LoadConfig()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user": user.Username,
@@ -129,7 +126,7 @@ func GenerateRefreshToken(user *user_model.User) (string, error) {
 	return token.SignedString([]byte(appConfig.SecretKey))
 }
 
-func ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
+func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
 	appConfig := config.LoadConfig()
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -154,6 +151,19 @@ func ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
+func (s *AuthService) FindUserByUsername(username string) (*shared_dto.UserDTO, error) {
+	return s.userService.FindUserByUsername(username)
+}
+
+func (s *AuthService) CheckAdminRole(role []interface{}) bool {
+	for _, r := range role {
+		if r == "admin" {
+			return true
+		}
+	}
+	return false
+}
+
 func SecretKeyBySite(c *gin.Context) (string, error) {
 	// Check site from middleware
 	site, exists := c.Get("site")
@@ -162,7 +172,7 @@ func SecretKeyBySite(c *gin.Context) (string, error) {
 	}
 
 	// Check secret key
-	secretKey := site.(*site_model.Site).SecretKey
+	secretKey := site.(*shared_dto.SiteDTO).SecretKey
 	if len(secretKey) == 0 {
 		return "", errors.New("site has no secret key")
 	}

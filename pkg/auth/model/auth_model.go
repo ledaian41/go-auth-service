@@ -1,13 +1,8 @@
 package auth_model
 
-type LoginAccount struct {
-	Username string `form:"username" json:"username" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
-}
+import shared_interface "go-auth-service/pkg/shared/interface"
 
-type RegisterAccount struct {
-	Username    string `form:"username" json:"username" binding:"required"`
-	Password    string `form:"password" json:"password" binding:"required,min=6"`
-	Email       string `form:"email" json:"email" binding:"email"`
-	PhoneNumber string `form:"phoneNumber" json:"phoneNumber"`
+type AuthService struct {
+	userService shared_interface.UserServiceInterface
+	secretKey   string
 }

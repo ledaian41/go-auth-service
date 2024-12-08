@@ -1,27 +1,27 @@
-package utils
+package auth_utils
 
 import (
-	"auth/pkg/site/model"
 	"github.com/gin-gonic/gin"
+	shared_dto "go-auth-service/pkg/shared/dto"
 	"net/http"
 )
 
 func SetCookieToken(c *gin.Context, token string) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	site, _ := c.Get("site")
-	siteId := site.(*site_model.Site).ID
+	siteId := site.(*shared_dto.SiteDTO).ID
 	c.SetCookie("jwt-"+siteId, token, 3600*24*7, "", "", false, true) // 1 week
 }
 
 func GetCookieToken(c *gin.Context) (string, error) {
 	site, _ := c.Get("site")
-	siteId := site.(*site_model.Site).ID
+	siteId := site.(*shared_dto.SiteDTO).ID
 	return c.Cookie("jwt-" + siteId)
 }
 
 func DestroyCookieToken(c *gin.Context) {
 	site, _ := c.Get("site")
-	siteId := site.(*site_model.Site).ID
+	siteId := site.(*shared_dto.SiteDTO).ID
 	c.SetCookie("jwt-"+siteId, "", 0, "", "", false, true)
 }
 

@@ -1,14 +1,18 @@
 package main
 
 import (
-	_ "auth/docs"
-	"auth/middleware"
-	auth_controller "auth/pkg/auth/controller"
-	user_controller "auth/pkg/user/controller"
-	user_model "auth/pkg/user/model"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"go-auth-service/config"
+	_ "go-auth-service/docs"
+	"go-auth-service/middleware"
+	auth_handler "go-auth-service/pkg/auth/handler"
+	auth_service "go-auth-service/pkg/auth/service"
+	site_service "go-auth-service/pkg/site/service"
+	user_handler "go-auth-service/pkg/user/handler"
+	user_model "go-auth-service/pkg/user/model"
+	user_service "go-auth-service/pkg/user/service"
 	"net/http"
 )
 
@@ -28,11 +32,21 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Use(middleware.SiteMiddleware())
+	SiteService := site_service.NewSiteService()
+	r.Use(middleware.SiteMiddleware(SiteService))
 
-	go auth_controller.Router(r)
+	userService := user_service.NewUserService()
+	authService := auth_service.NewAuthService(userService, config.LoadConfig().SecretKey)
 
-	go user_controller.Router(r)
+	AuthHandler := auth_handler.NewAuthHandler(authService)
+	r.GET("/:siteId/jwt", middleware.AuthMiddleware(authService), AuthHandler.JWT)
+	r.GET("/:siteId/refresh", AuthHandler.RefreshToken)
+	r.POST("/:siteId/signup", AuthHandler.Register)
+	r.POST("/:siteId/login", AuthHandler.Login)
+	r.GET("/:siteId/signout", AuthHandler.Logout)
+
+	UserHandler := user_handler.NewUserHandler(userService)
+	r.GET("/:siteId/users", middleware.AuthMiddleware(authService), middleware.AdminAuthMiddleware(authService), UserHandler.GetUserList)
 
 	r.Run("localhost:8080")
 }

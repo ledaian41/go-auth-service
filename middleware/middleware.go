@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	auth_service "auth/pkg/auth/service"
-	site_service "auth/pkg/site/service"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	shared_interface "go-auth-service/pkg/shared/interface"
 	"net/http"
 	"strings"
 )
 
-func SiteMiddleware() gin.HandlerFunc {
+func SiteMiddleware(siteService shared_interface.SiteServiceInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		siteId := c.Param("siteId")
 		if strings.Trim(siteId, " ") == "" {
@@ -16,7 +16,7 @@ func SiteMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		site := site_service.CheckSiteExists(siteId)
+		site := siteService.CheckSiteExists(siteId)
 		if site == nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "site not found"})
 			return
@@ -27,7 +27,7 @@ func SiteMiddleware() gin.HandlerFunc {
 	}
 }
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(authService shared_interface.AuthServiceInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken := c.GetHeader("Authorization")
 		if accessToken == "" {
@@ -35,7 +35,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := auth_service.ValidateAccessToken(c, accessToken)
+		claims, err := authService.ValidateAccessToken(c, accessToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 			return
@@ -43,5 +43,25 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		c.Set("claims", claims)
 		c.Next()
+	}
+}
+
+func AdminAuthMiddleware(authService shared_interface.AuthServiceInterface) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims, exists := c.Get("claims")
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+			return
+		}
+
+		mapClaims := claims.(jwt.MapClaims)
+		role := mapClaims["role"]
+		if role != nil && authService.CheckAdminRole(role.([]interface{})) {
+			c.Next()
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "no permission"})
+		return
 	}
 }

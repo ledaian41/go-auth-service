@@ -13,19 +13,6 @@
     "site": "lexis"
   },
   {
-    "username": "admin",
-    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
-    "name": "admin",
-    "dob": "01/01/2024",
-    "phone_number": "0123456789",
-    "email": "admin@gmail.com",
-    "avatar": "",
-    "role": [
-      "admin"
-    ],
-    "site": "app"
-  },
-  {
     "username": "an",
     "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
     "name": "Le Dai An",
@@ -50,6 +37,19 @@
     "role": [
       "user"
     ],
+    "site": "lexis"
+  },
+  {
+    "username": "admin",
+    "password": "$2a$10$efVRe6.fsZL41t.3Nxp61OaCqS40pdUyP7LOmxccGnceisga6iovG",
+    "name": "admin",
+    "dob": "01/01/2024",
+    "phone_number": "0123456789",
+    "email": "admin@gmail.com",
+    "avatar": "",
+    "role": [
+      "admin"
+    ],
     "site": "app"
   },
   {
@@ -63,6 +63,6 @@
     "role": [
       "user"
     ],
-    "site": "lexis"
+    "site": "app"
   }
 ]

@@ -2,8 +2,8 @@ package user_model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	shared_dto "go-auth-service/pkg/shared/dto"
 	"io/ioutil"
 	"os"
 )
@@ -42,8 +42,36 @@ func (user User) Response() UserResponse {
 	}
 }
 
-func (user User) Validate() (bool, error) {
-	return true, nil
+func (user User) ToDTO() shared_dto.UserDTO {
+	return shared_dto.UserDTO{
+		Username:    user.Username,
+		Password:    user.Password,
+		Name:        user.Name,
+		PhoneNumber: user.PhoneNumber,
+		Email:       user.Email,
+		Role:        user.Role,
+		Site:        user.Site,
+	}
+}
+
+func (user User) HasRole(role string) bool {
+	for _, r := range user.Role {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
+func (user User) HasAnyRole(roles []string) bool {
+	for _, requiredRole := range roles {
+		for _, userRole := range user.Role {
+			if userRole == requiredRole {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 var UserList []User
@@ -67,14 +95,4 @@ func LoadUsersFromFile(filePath string) error {
 	}
 
 	return nil
-}
-
-func GetById(userId string) (*User, error) {
-	for _, user := range UserList {
-		if user.Username == userId {
-			userCopy := user
-			return &userCopy, nil
-		}
-	}
-	return nil, errors.New("user not found")
 }
