@@ -7,12 +7,12 @@ import (
 	"go-auth-service/config"
 	_ "go-auth-service/docs"
 	"go-auth-service/middleware"
-	auth_handler "go-auth-service/pkg/auth/handler"
-	auth_service "go-auth-service/pkg/auth/service"
-	site_service "go-auth-service/pkg/site/service"
-	user_handler "go-auth-service/pkg/user/handler"
-	user_model "go-auth-service/pkg/user/model"
-	user_service "go-auth-service/pkg/user/service"
+	"go-auth-service/pkg/auth/handler"
+	"go-auth-service/pkg/auth/service"
+	"go-auth-service/pkg/site/service"
+	"go-auth-service/pkg/user/handler"
+	"go-auth-service/pkg/user/model"
+	"go-auth-service/pkg/user/service"
 	"net/http"
 )
 
@@ -32,8 +32,8 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	SiteService := site_service.NewSiteService()
-	r.Use(middleware.SiteMiddleware(SiteService))
+	siteService := site_service.NewSiteService()
+	r.Use(middleware.SiteMiddleware(siteService))
 
 	userService := user_service.NewUserService()
 	authService := auth_service.NewAuthService(userService, config.LoadConfig().SecretKey)
