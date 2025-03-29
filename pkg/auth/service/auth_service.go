@@ -10,6 +10,7 @@ import (
 	"go-auth-service/pkg/shared/interface"
 	"go-auth-service/pkg/shared/utils"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -19,14 +20,16 @@ var (
 )
 
 type AuthService struct {
-	userService shared_interface.UserServiceInterface
-	secretKey   string
+	userService   shared_interface.UserServiceInterface
+	secretKey     string
+	revokedTokens sync.Map
 }
 
 func NewAuthService(userService shared_interface.UserServiceInterface, secretKey string) *AuthService {
 	return &AuthService{
-		userService: userService,
-		secretKey:   secretKey,
+		userService:   userService,
+		secretKey:     secretKey,
+		revokedTokens: sync.Map{},
 	}
 }
 
@@ -112,15 +115,22 @@ func (s *AuthService) ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.
 		return nil, errors.New("token expired")
 	}
 
+	if tokenVersion, ok := s.revokedTokens.Load(claims["user"]); ok {
+		fmt.Println("revoked token", tokenVersion.(int), "--", int(claims["token_version"].(float64)))
+		if int(claims["token_version"].(float64)) < tokenVersion.(int) {
+			return nil, errors.New("token expired")
+		}
+	}
 	return claims, nil
 }
 
 func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, error) {
 	appConfig := config.LoadConfig()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user": user.Username,
-		"site": user.Site,
-		"ttl":  time.Now().Add(refreshExpireTime).Unix(),
+		"user":          user.Username,
+		"site":          user.Site,
+		"ttl":           time.Now().Add(refreshExpireTime).Unix(),
+		"token_version": user.TokenVersion,
 	})
 
 	// Sign, get the complete encoded token as a string
@@ -147,6 +157,13 @@ func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, erro
 	// Check expiry of token
 	if claims["ttl"].(float64) < float64(time.Now().Unix()) {
 		return nil, errors.New("token expired")
+	}
+
+	if tokenVersion, ok := s.revokedTokens.Load(claims["user"]); ok {
+		fmt.Println("revoked token", tokenVersion.(int), "--", int(claims["token_version"].(float64)))
+		if int(claims["token_version"].(float64)) < tokenVersion.(int) {
+			return nil, errors.New("token expired")
+		}
 	}
 
 	return claims, nil
@@ -181,6 +198,12 @@ func secretKeyBySite(c *gin.Context) (string, error) {
 	return secretKey, nil
 }
 
-func (s *AuthService) RevokeUserSession(username string) {
+func (s *AuthService) RevokeUserSession(username, siteId string) {
+	if tokenVersion, ok := s.revokedTokens.Load(username); ok {
+		s.revokedTokens.Store(username, tokenVersion.(int)+1)
+	} else {
+		s.revokedTokens.Store(username, 1)
+	}
 
+	s.userService.IncrementTokenVersion(username, siteId)
 }

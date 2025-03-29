@@ -45,13 +45,14 @@ func (user User) Response() UserResponse {
 
 func (user User) ToDTO() shared_dto.UserDTO {
 	return shared_dto.UserDTO{
-		Username:    user.Username,
-		Password:    user.Password,
-		Name:        user.Name,
-		PhoneNumber: user.PhoneNumber,
-		Email:       user.Email,
-		Role:        user.Role,
-		Site:        user.Site,
+		Username:     user.Username,
+		Password:     user.Password,
+		Name:         user.Name,
+		PhoneNumber:  user.PhoneNumber,
+		Email:        user.Email,
+		Role:         user.Role,
+		Site:         user.Site,
+		TokenVersion: user.TokenVersion,
 	}
 }
 
@@ -76,6 +77,10 @@ func (user User) HasAnyRole(roles []string) bool {
 }
 
 var UserList []User
+
+func (user User) IncreaseTokenVersion() {
+	user.TokenVersion++
+}
 
 func LoadUsersFromFile(filePath string) error {
 	// Check if file exists

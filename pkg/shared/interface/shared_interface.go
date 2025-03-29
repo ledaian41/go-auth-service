@@ -19,12 +19,12 @@ type AuthServiceInterface interface {
 	CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error)
 	FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error)
 	CheckAdminRole(role []interface{}) bool
-	RevokeUserSession(username string)
+	RevokeUserSession(username, siteId string)
 }
 
 type UserServiceInterface interface {
 	CreateNewUser(user *shared_dto.UserDTO) (*shared_dto.UserDTO, error)
 	FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error)
 	FindUsersBySite(siteId string) *[]shared_dto.UserDTO
-	IncrementTokenVersion(username string)
+	IncrementTokenVersion(username, siteId string)
 }

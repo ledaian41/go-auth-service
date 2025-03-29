@@ -1,6 +1,7 @@
 package auth_handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/pkg/auth/utils"
@@ -59,7 +60,7 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-
+	fmt.Println("login", user)
 	accessToken, err := handler.authService.GenerateAccessToken(c, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
@@ -77,8 +78,16 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 }
 
 func (handler *AuthHandler) Logout(c *gin.Context) {
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+		return
+	}
+
+	mapClaims := claims.(jwt.MapClaims)
+	siteId := c.Param("siteId")
+	handler.authService.RevokeUserSession(mapClaims["user"].(string), siteId)
 	auth_utils.DestroyCookieToken(c)
-	//handler.authService.RevokeUserSession()
 	c.String(http.StatusOK, "Signed out")
 }
 

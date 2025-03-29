@@ -2,6 +2,7 @@ package user_service
 
 import (
 	"errors"
+	"fmt"
 	"go-auth-service/pkg/shared/dto"
 	"go-auth-service/pkg/shared/utils"
 	"go-auth-service/pkg/user/model"
@@ -70,6 +71,11 @@ func (s *UserService) FindUsersBySite(siteId string) *[]shared_dto.UserDTO {
 	return &result
 }
 
-func (s *UserService) IncrementTokenVersion(username string) {
-
+func (s *UserService) IncrementTokenVersion(username, siteId string) {
+	fmt.Println("Incrementing token version", username, siteId)
+	for i := range user_model.UserList {
+		if user_model.UserList[i].Site == siteId && user_model.UserList[i].Username == username {
+			user_model.UserList[i].TokenVersion++
+		}
+	}
 }

@@ -43,7 +43,7 @@ func main() {
 	r.GET("/:siteId/refresh", AuthHandler.RefreshToken)
 	r.POST("/:siteId/signup", AuthHandler.Register)
 	r.POST("/:siteId/login", AuthHandler.Login)
-	r.GET("/:siteId/signout", AuthHandler.Logout)
+	r.GET("/:siteId/signout", middleware.AuthMiddleware(authService), AuthHandler.Logout)
 
 	UserHandler := user_handler.NewUserHandler(userService)
 	r.GET("/:siteId/users", middleware.AuthMiddleware(authService), middleware.AdminAuthMiddleware(authService), UserHandler.GetUserList)
