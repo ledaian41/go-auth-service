@@ -3,21 +3,22 @@ package user_model
 import (
 	"encoding/json"
 	"fmt"
-	shared_dto "go-auth-service/pkg/shared/dto"
+	"go-auth-service/pkg/shared/dto"
 	"io/ioutil"
 	"os"
 )
 
 type User struct {
-	Username    string   `json:"username"`
-	Password    string   `json:"password"`
-	Name        string   `json:"name"`
-	DOB         string   `json:"dob"`
-	PhoneNumber string   `json:"phone_number"`
-	Email       string   `json:"email"`
-	Avatar      string   `json:"avatar"`
-	Role        []string `json:"role"`
-	Site        string   `json:"site"`
+	Username     string   `json:"username"`
+	Password     string   `json:"password"`
+	Name         string   `json:"name"`
+	DOB          string   `json:"dob"`
+	PhoneNumber  string   `json:"phone_number"`
+	Email        string   `json:"email"`
+	Avatar       string   `json:"avatar"`
+	Role         []string `json:"role"`
+	Site         string   `json:"site"`
+	TokenVersion int      `json:"token_version"`
 }
 
 type UserResponse struct {

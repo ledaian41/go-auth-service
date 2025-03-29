@@ -1,13 +1,14 @@
 package shared_dto
 
 type UserDTO struct {
-	Username    string   `json:"username"`
-	Password    string   `json:"password"`
-	Name        string   `json:"name"`
-	PhoneNumber string   `json:"phone_number"`
-	Email       string   `json:"email"`
-	Role        []string `json:"role"`
-	Site        string   `json:"site"`
+	Username     string   `json:"username"`
+	Password     string   `json:"password"`
+	Name         string   `json:"name"`
+	PhoneNumber  string   `json:"phone_number"`
+	Email        string   `json:"email"`
+	Role         []string `json:"role"`
+	Site         string   `json:"site"`
+	TokenVersion int      `json:"token_version"`
 }
 
 type SiteDTO struct {

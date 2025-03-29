@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/config"
-	shared_dto "go-auth-service/pkg/shared/dto"
-	shared_interface "go-auth-service/pkg/shared/interface"
-	shared_utils "go-auth-service/pkg/shared/utils"
+	"go-auth-service/pkg/shared/dto"
+	"go-auth-service/pkg/shared/interface"
+	"go-auth-service/pkg/shared/utils"
 	"strings"
 	"time"
 )
@@ -30,7 +30,7 @@ func NewAuthService(userService shared_interface.UserServiceInterface, secretKey
 	}
 }
 
-func (s *AuthService) CheckValidUser(username string, password string) (*shared_dto.UserDTO, error) {
+func (s *AuthService) CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error) {
 	if len(strings.Trim(username, " ")) == 0 {
 		return nil, errors.New("invalid username or password")
 	}
@@ -39,7 +39,7 @@ func (s *AuthService) CheckValidUser(username string, password string) (*shared_
 		return nil, errors.New("invalid username or password")
 	}
 
-	user, err := s.FindUserByUsername(username)
+	user, err := s.FindUserByUsername(username, siteId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,18 +68,19 @@ func (s *AuthService) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (
 }
 
 func (s *AuthService) GenerateAccessToken(c *gin.Context, user *shared_dto.UserDTO) (string, error) {
-	siteSecretKey, err := SecretKeyBySite(c)
+	siteSecretKey, err := secretKeyBySite(c)
 	if err != nil {
 		return "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user":  user.Username,
-		"role":  user.Role,
-		"name":  user.Name,
-		"email": user.Email,
-		"phone": user.PhoneNumber,
-		"ttl":   time.Now().Add(accessExpireTime).Unix(),
+		"user":          user.Username,
+		"role":          user.Role,
+		"name":          user.Name,
+		"email":         user.Email,
+		"phone":         user.PhoneNumber,
+		"ttl":           time.Now().Add(accessExpireTime).Unix(),
+		"token_version": user.TokenVersion,
 	})
 
 	// Sign, get the complete encoded token as a string
@@ -87,7 +88,7 @@ func (s *AuthService) GenerateAccessToken(c *gin.Context, user *shared_dto.UserD
 }
 
 func (s *AuthService) ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error) {
-	siteSecretKey, err := SecretKeyBySite(c)
+	siteSecretKey, err := secretKeyBySite(c)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +152,8 @@ func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, erro
 	return claims, nil
 }
 
-func (s *AuthService) FindUserByUsername(username string) (*shared_dto.UserDTO, error) {
-	return s.userService.FindUserByUsername(username)
+func (s *AuthService) FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error) {
+	return s.userService.FindUserByUsername(username, siteId)
 }
 
 func (s *AuthService) CheckAdminRole(role []interface{}) bool {
@@ -164,7 +165,7 @@ func (s *AuthService) CheckAdminRole(role []interface{}) bool {
 	return false
 }
 
-func SecretKeyBySite(c *gin.Context) (string, error) {
+func secretKeyBySite(c *gin.Context) (string, error) {
 	// Check site from middleware
 	site, exists := c.Get("site")
 	if !exists {
@@ -178,4 +179,8 @@ func SecretKeyBySite(c *gin.Context) (string, error) {
 	}
 
 	return secretKey, nil
+}
+
+func (s *AuthService) RevokeUserSession(username string) {
+
 }

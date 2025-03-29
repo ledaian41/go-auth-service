@@ -3,9 +3,9 @@ package auth_handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	auth_utils "go-auth-service/pkg/auth/utils"
-	shared_dto "go-auth-service/pkg/shared/dto"
-	shared_interface "go-auth-service/pkg/shared/interface"
+	"go-auth-service/pkg/auth/utils"
+	"go-auth-service/pkg/shared/dto"
+	"go-auth-service/pkg/shared/interface"
 	"net/http"
 )
 
@@ -53,7 +53,8 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := handler.authService.CheckValidUser(loginAccount.Username, loginAccount.Password)
+	siteId := c.Param("siteId")
+	user, err := handler.authService.CheckValidUser(loginAccount.Username, loginAccount.Password, siteId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -77,7 +78,8 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 func (handler *AuthHandler) Logout(c *gin.Context) {
 	auth_utils.DestroyCookieToken(c)
-	c.Status(http.StatusOK)
+	//handler.authService.RevokeUserSession()
+	c.String(http.StatusOK, "Signed out")
 }
 
 func (handler *AuthHandler) RefreshToken(c *gin.Context) {
@@ -100,7 +102,7 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	user, err := handler.authService.FindUserByUsername(claims["user"].(string))
+	user, err := handler.authService.FindUserByUsername(claims["user"].(string), site.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 		return

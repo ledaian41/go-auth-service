@@ -2,7 +2,7 @@ package auth_utils
 
 import (
 	"github.com/gin-gonic/gin"
-	shared_dto "go-auth-service/pkg/shared/dto"
+	"go-auth-service/pkg/shared/dto"
 	"net/http"
 )
 

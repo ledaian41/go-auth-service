@@ -2,7 +2,7 @@ package user_handler
 
 import (
 	"github.com/gin-gonic/gin"
-	shared_interface "go-auth-service/pkg/shared/interface"
+	"go-auth-service/pkg/shared/interface"
 	"net/http"
 )
 

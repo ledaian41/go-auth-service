@@ -1,6 +1,6 @@
 package site_model
 
-import shared_dto "go-auth-service/pkg/shared/dto"
+import "go-auth-service/pkg/shared/dto"
 
 type Site struct {
 	ID        string `json:"id"`

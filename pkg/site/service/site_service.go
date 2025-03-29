@@ -1,8 +1,8 @@
 package site_service
 
 import (
-	shared_dto "go-auth-service/pkg/shared/dto"
-	site_data "go-auth-service/pkg/site/data"
+	"go-auth-service/pkg/shared/dto"
+	"go-auth-service/pkg/site/data"
 )
 
 type SiteService struct{}
