@@ -3,6 +3,9 @@ package shared_utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
+	"github.com/gin-gonic/gin"
+	shared_dto "go-auth-service/pkg/shared/dto"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
@@ -45,4 +48,14 @@ func RandomID() string {
 		log.Printf("❌ Failed to generate random ID: %v", err)
 	}
 	return hex.EncodeToString(b)
+}
+
+func ReadSiteContext(c *gin.Context) (*shared_dto.SiteDTO, error) {
+	// Check site from middleware
+	site, exists := c.Get("site")
+	if !exists {
+		return nil, errors.New("no site info, have to use site middleware")
+	}
+
+	return site.(*shared_dto.SiteDTO), nil
 }

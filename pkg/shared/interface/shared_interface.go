@@ -1,7 +1,6 @@
 package shared_interface
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/pkg/shared/dto"
 )
@@ -12,8 +11,8 @@ type SiteService interface {
 
 type AuthService interface {
 	CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error)
-	GenerateAccessToken(c *gin.Context, user *shared_dto.UserDTO) (string, error)
-	ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error)
+	GenerateAccessToken(siteSecretKey, sessionId string, user *shared_dto.UserDTO) (string, error)
+	ValidateAccessToken(site *shared_dto.SiteDTO, tokenStr string) (jwt.MapClaims, error)
 	GenerateRefreshToken(user *shared_dto.UserDTO) (string, error)
 	ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error)
 	CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error)
@@ -28,7 +27,7 @@ type UserService interface {
 }
 
 type TokenService interface {
-	ValidateRefreshToken(refreshToken string) (bool, error)
-	StoreRefreshToken(username, refreshToken string) error
+	ValidateRefreshToken(refreshToken string) string
+	StoreRefreshToken(username, refreshToken string) string
 	RevokeRefreshToken(refreshToken string) error
 }

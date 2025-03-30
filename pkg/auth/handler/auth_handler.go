@@ -6,6 +6,7 @@ import (
 	"go-auth-service/pkg/auth/utils"
 	"go-auth-service/pkg/shared/dto"
 	"go-auth-service/pkg/shared/interface"
+	"go-auth-service/pkg/shared/utils"
 	"net/http"
 )
 
@@ -37,8 +38,14 @@ func (handler *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 	auth_utils.SetCookieToken(c, refreshToken)
+	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if len(sessionId) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
+		return
+	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(c, user)
+	site, _ := shared_utils.ReadSiteContext(c)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
@@ -66,13 +73,14 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 	auth_utils.SetCookieToken(c, refreshToken)
-	err = handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
-	if err != nil {
+	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if len(sessionId) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(c, user)
+	site, _ := shared_utils.ReadSiteContext(c)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
@@ -108,14 +116,13 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	valid, _ := handler.tokenService.ValidateRefreshToken(refreshToken)
-	if !valid {
+	sessionId := handler.tokenService.ValidateRefreshToken(refreshToken)
+	if len(sessionId) == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid refresh token"})
 		return
 	}
 
-	siteObj, _ := c.Get("site")
-	site := siteObj.(*shared_dto.SiteDTO)
+	site, _ := shared_utils.ReadSiteContext(c)
 	if site.ID != claims["site"].(string) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "site not matched"})
 		return
@@ -127,7 +134,7 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(c, user)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return

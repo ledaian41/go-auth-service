@@ -23,26 +23,24 @@ func (s *TokenService) MigrateDatabase() {
 	log.Println("🎉 NodeType - Database migrate successfully")
 }
 
-func (s *TokenService) ValidateRefreshToken(refreshToken string) (bool, error) {
+func (s *TokenService) ValidateRefreshToken(refreshToken string) string {
 	var token token_model.UserToken
-
-	err := s.db.Where("refresh_token = ? AND revoked = ?", refreshToken, false).
-		First(&token).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	_ = s.db.Where("refresh_token = ?", refreshToken).First(&token).Error
+	return token.ID
 }
 
-func (s *TokenService) StoreRefreshToken(username, refreshToken string) error {
+func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
+	sessionId := shared_utils.RandomID()
 	token := token_model.UserToken{
-		ID:           shared_utils.RandomID(),
+		ID:           sessionId,
 		UserID:       username,
 		RefreshToken: refreshToken,
 	}
-	return s.db.Create(&token).Error
+	if err := s.db.Create(&token).Error; err != nil {
+		log.Println("error create token in database", err)
+		return ""
+	}
+	return sessionId
 }
 
 func (s *TokenService) RevokeRefreshToken(refreshToken string) error {
