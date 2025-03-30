@@ -7,19 +7,22 @@ import (
 	"os"
 )
 
+var Env *AppConfig
+
 type AppConfig struct {
 	SecretKey string
+	RedisHost string
 }
 
-func LoadConfig() *AppConfig {
+func LoadConfig() {
 	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Println(fmt.Sprintf("❌ Error loading .env file: %v", err))
 	}
 
-	// Create and return AppConfig instance
-	return &AppConfig{
+	Env = &AppConfig{
 		SecretKey: os.Getenv("SECRET_KEY"),
+		RedisHost: os.Getenv("REDIS_HOST"),
 	}
 }
