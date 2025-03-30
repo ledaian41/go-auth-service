@@ -86,7 +86,6 @@ func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, er
 		"ttl":           time.Now().Add(refreshExpireTime).Unix(),
 		"token_version": user.TokenVersion,
 	})
-
 	// Sign, get the complete encoded token as a string
 	return token.SignedString([]byte(config.Env.SecretKey))
 }
@@ -118,9 +117,4 @@ func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, erro
 	}
 
 	return claims, nil
-}
-
-func (s *AuthService) RevokeUserSession(username, siteId string) {
-	s.redisClient.IncrementSessionVersion(username, siteId)
-	s.userService.IncrementTokenVersion(username, siteId)
 }

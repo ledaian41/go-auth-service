@@ -1,7 +1,6 @@
 package auth_handler
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/pkg/auth/utils"
@@ -11,11 +10,12 @@ import (
 )
 
 type AuthHandler struct {
-	authService shared_interface.AuthServiceInterface
+	authService  shared_interface.AuthService
+	tokenService shared_interface.TokenService
 }
 
-func NewAuthHandler(authService shared_interface.AuthServiceInterface) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService shared_interface.AuthService, tokenService shared_interface.TokenService) *AuthHandler {
+	return &AuthHandler{authService: authService, tokenService: tokenService}
 }
 
 func (handler *AuthHandler) Register(c *gin.Context) {
@@ -31,19 +31,18 @@ func (handler *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(c, user)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
-		return
-	}
-
 	refreshToken, err := handler.authService.GenerateRefreshToken(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
-
 	auth_utils.SetCookieToken(c, refreshToken)
+
+	accessToken, err := handler.authService.GenerateAccessToken(c, user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
@@ -60,33 +59,38 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	fmt.Println("login", user)
-	accessToken, err := handler.authService.GenerateAccessToken(c, user)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
-		return
-	}
 
 	refreshToken, err := handler.authService.GenerateRefreshToken(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
-
 	auth_utils.SetCookieToken(c, refreshToken)
+	err = handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
+		return
+	}
+
+	accessToken, err := handler.authService.GenerateAccessToken(c, user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
+		return
+	}
 	c.IndentedJSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
 func (handler *AuthHandler) Logout(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	refreshToken, err := auth_utils.GetCookieToken(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
 		return
 	}
-
-	mapClaims := claims.(jwt.MapClaims)
-	siteId := c.Param("siteId")
-	handler.authService.RevokeUserSession(mapClaims["user"].(string), siteId)
+	err = handler.tokenService.RevokeRefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "revoke refresh token failed"})
+		return
+	}
 	auth_utils.DestroyCookieToken(c)
 	c.String(http.StatusOK, "Signed out")
 }
@@ -101,6 +105,12 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 	claims, err := handler.authService.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+		return
+	}
+
+	valid, _ := handler.tokenService.ValidateRefreshToken(refreshToken)
+	if !valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid refresh token"})
 		return
 	}
 
@@ -134,16 +144,10 @@ func (handler *AuthHandler) JWT(c *gin.Context) {
 	}
 
 	mapClaims := claims.(jwt.MapClaims)
-	role := mapClaims["role"]
-	if role == nil {
-		role = ""
-	} else {
-		role = auth_utils.ToStringSlice(role.([]interface{}))
-	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"username": mapClaims["user"].(string),
-		"role":     role,
+		"role":     mapClaims["role"].(string),
 		"name":     mapClaims["name"].(string),
 		"email":    mapClaims["email"].(string),
 		"phone":    mapClaims["phone"].(string),

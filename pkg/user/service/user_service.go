@@ -2,16 +2,29 @@ package user_service
 
 import (
 	"errors"
-	"fmt"
 	"go-auth-service/pkg/shared/dto"
 	"go-auth-service/pkg/shared/utils"
 	"go-auth-service/pkg/user/model"
+	"gorm.io/gorm"
+	"log"
 )
 
-type UserService struct{}
+type UserService struct {
+	db *gorm.DB
+}
 
-func NewUserService() *UserService {
-	return &UserService{}
+func NewUserService(db *gorm.DB) *UserService {
+	return &UserService{
+		db: db,
+	}
+}
+
+func (s *UserService) MigrateDatabase() {
+	err := s.db.AutoMigrate(&user_model.User{})
+	if err != nil {
+		log.Printf("❌ Failed at AutoMigrate: %v", err)
+	}
+	log.Println("🎉 NodeType - Database migrate successfully")
 }
 
 func (s *UserService) FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error) {
@@ -33,13 +46,14 @@ func (s *UserService) CreateNewUser(user *shared_dto.UserDTO) (*shared_dto.UserD
 	}
 
 	newUser := user_model.User{
+		ID:           shared_utils.RandomID(),
 		Username:     user.Username,
 		Password:     user.Password,
 		PhoneNumber:  user.PhoneNumber,
 		Email:        user.Email,
 		Role:         user.Role,
 		Site:         user.Site,
-		TokenVersion: 0,
+		TokenVersion: user.TokenVersion,
 	}
 	user_model.UserList = append(user_model.UserList, newUser)
 	return user, nil
@@ -60,22 +74,12 @@ func (s *UserService) FindUsersBySite(siteId string) *[]shared_dto.UserDTO {
 	})
 	result := shared_utils.Map(filteredUsers, func(user user_model.User) shared_dto.UserDTO {
 		return shared_dto.UserDTO{
-			Username:     user.Username,
-			Name:         user.Name,
-			PhoneNumber:  user.PhoneNumber,
-			Email:        user.Email,
-			Role:         user.Role,
-			TokenVersion: user.TokenVersion,
+			Username:    user.Username,
+			Name:        user.Name,
+			PhoneNumber: user.PhoneNumber,
+			Email:       user.Email,
+			Role:        user.Role,
 		}
 	})
 	return &result
-}
-
-func (s *UserService) IncrementTokenVersion(username, siteId string) {
-	fmt.Println("Incrementing token version", username, siteId)
-	for i := range user_model.UserList {
-		if user_model.UserList[i].Site == siteId && user_model.UserList[i].Username == username {
-			user_model.UserList[i].TokenVersion++
-		}
-	}
 }

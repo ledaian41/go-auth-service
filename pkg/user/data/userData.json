@@ -7,9 +7,7 @@
     "phone_number": "0123456789",
     "email": "admin@gmail.com",
     "avatar": "",
-    "role": [
-      "admin"
-    ],
+    "role": "admin",
     "site": "lexis"
   },
   {
@@ -20,10 +18,7 @@
     "phone_number": "0703940225",
     "email": "ledaian41@gmail.com",
     "avatar": "",
-    "role": [
-      "admin",
-      "user"
-    ],
+    "role": "admin",
     "site": "lexis"
   },
   {
@@ -34,9 +29,7 @@
     "phone_number": "0123456789",
     "email": "anonymous@gmail.com",
     "avatar": "",
-    "role": [
-      "user"
-    ],
+    "role": "user",
     "site": "lexis"
   },
   {
@@ -47,9 +40,7 @@
     "phone_number": "0123456789",
     "email": "admin@gmail.com",
     "avatar": "",
-    "role": [
-      "admin"
-    ],
+    "role": "admin",
     "site": "app"
   },
   {
@@ -60,9 +51,7 @@
     "phone_number": "0123456789",
     "email": "anonymous@gmail.com",
     "avatar": "",
-    "role": [
-      "user"
-    ],
+    "role": "user",
     "site": "app"
   }
 ]

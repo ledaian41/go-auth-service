@@ -15,11 +15,12 @@ import (
 // @BasePath /
 func main() {
 	config.LoadConfig()
+	db := config.InitDatabase()
 	redisClient := config.InitRedisClient()
 
 	_ = user_model.LoadUsersFromFile("./pkg/user/data/userData.json")
 
-	r := routes.SetupRouter(redisClient)
+	r := routes.SetupRouter(db, redisClient)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {

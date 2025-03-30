@@ -16,16 +16,14 @@ var (
 )
 
 type AuthService struct {
-	userService shared_interface.UserServiceInterface
-	secretKey   string
+	userService shared_interface.UserService
 	redisClient *config.RedisClient
 }
 
-func NewAuthService(userService shared_interface.UserServiceInterface, redisClient *config.RedisClient) *AuthService {
+func NewAuthService(redisClient *config.RedisClient, userService shared_interface.UserService) *AuthService {
 	return &AuthService{
-		userService: userService,
-		secretKey:   config.Env.SecretKey,
 		redisClient: redisClient,
+		userService: userService,
 	}
 }
 
@@ -61,7 +59,7 @@ func (s *AuthService) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (
 		Password:    hashedPassword,
 		PhoneNumber: account.PhoneNumber,
 		Email:       account.Email,
-		Role:        []string{"user"},
+		Role:        "user",
 	}
 	return s.userService.CreateNewUser(&newUser)
 }

@@ -6,11 +6,11 @@ import (
 	"go-auth-service/pkg/shared/dto"
 )
 
-type SiteServiceInterface interface {
+type SiteService interface {
 	CheckSiteExists(siteId string) *shared_dto.SiteDTO
 }
 
-type AuthServiceInterface interface {
+type AuthService interface {
 	CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error)
 	GenerateAccessToken(c *gin.Context, user *shared_dto.UserDTO) (string, error)
 	ValidateAccessToken(c *gin.Context, tokenStr string) (jwt.MapClaims, error)
@@ -19,12 +19,16 @@ type AuthServiceInterface interface {
 	CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error)
 	FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error)
 	CheckAdminRole(role []interface{}) bool
-	RevokeUserSession(username, siteId string)
 }
 
-type UserServiceInterface interface {
+type UserService interface {
 	CreateNewUser(user *shared_dto.UserDTO) (*shared_dto.UserDTO, error)
 	FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error)
 	FindUsersBySite(siteId string) *[]shared_dto.UserDTO
-	IncrementTokenVersion(username, siteId string)
+}
+
+type TokenService interface {
+	ValidateRefreshToken(refreshToken string) (bool, error)
+	StoreRefreshToken(username, refreshToken string) error
+	RevokeRefreshToken(refreshToken string) error
 }

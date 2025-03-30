@@ -1,6 +1,11 @@
 package shared_utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"golang.org/x/crypto/bcrypt"
+	"log"
+)
 
 func Filter[T any](arr []T, predicate func(T) bool) []T {
 	var result []T
@@ -31,4 +36,13 @@ func HashPassword(password string) (string, error) {
 func CheckHashPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func RandomID() string {
+	b := make([]byte, 4) // 4 bytes = 8 hex characters
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Printf("❌ Failed to generate random ID: %v", err)
+	}
+	return hex.EncodeToString(b)
 }

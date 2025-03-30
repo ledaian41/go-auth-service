@@ -12,6 +12,7 @@ var Env *AppConfig
 type AppConfig struct {
 	SecretKey string
 	RedisHost string
+	CachePath string
 }
 
 func LoadConfig() {
@@ -24,5 +25,6 @@ func LoadConfig() {
 	Env = &AppConfig{
 		SecretKey: os.Getenv("SECRET_KEY"),
 		RedisHost: os.Getenv("REDIS_HOST"),
+		CachePath: os.Getenv("CACHE_PATH"),
 	}
 }

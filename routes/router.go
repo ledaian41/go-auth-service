@@ -10,12 +10,14 @@ import (
 	"go-auth-service/pkg/auth/handler"
 	"go-auth-service/pkg/auth/service"
 	"go-auth-service/pkg/site/service"
+	token_service "go-auth-service/pkg/token/service"
 	"go-auth-service/pkg/user/handler"
 	"go-auth-service/pkg/user/service"
+	"gorm.io/gorm"
 	"net/http"
 )
 
-func SetupRouter(redisClient *config.RedisClient) *gin.Engine {
+func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 	r := gin.Default()
 	//gin.SetMode(gin.ReleaseMode) for production
 
@@ -28,15 +30,20 @@ func SetupRouter(redisClient *config.RedisClient) *gin.Engine {
 	siteService := site_service.NewSiteService()
 	r.Use(middleware.SiteMiddleware(siteService))
 
-	userService := user_service.NewUserService()
-	authService := auth_service.NewAuthService(userService, redisClient)
+	userService := user_service.NewUserService(db)
+	userService.MigrateDatabase()
 
-	AuthHandler := auth_handler.NewAuthHandler(authService)
+	tokenService := token_service.NewTokenService(db)
+	tokenService.MigrateDatabase()
+
+	authService := auth_service.NewAuthService(redisClient, userService)
+
+	AuthHandler := auth_handler.NewAuthHandler(authService, tokenService)
 	r.GET("/:siteId/jwt", middleware.AuthMiddleware(authService), AuthHandler.JWT)
 	r.GET("/:siteId/refresh", AuthHandler.RefreshToken)
 	r.POST("/:siteId/signup", AuthHandler.Register)
 	r.POST("/:siteId/login", AuthHandler.Login)
-	r.GET("/:siteId/signout", middleware.AuthMiddleware(authService), AuthHandler.Logout)
+	r.GET("/:siteId/signout", AuthHandler.Logout)
 
 	UserHandler := user_handler.NewUserHandler(userService)
 	r.GET("/:siteId/users", middleware.AuthMiddleware(authService), middleware.AdminAuthMiddleware(authService), UserHandler.GetUserList)

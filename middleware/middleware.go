@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func SiteMiddleware(siteService shared_interface.SiteServiceInterface) gin.HandlerFunc {
+func SiteMiddleware(siteService shared_interface.SiteService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		siteId := c.Param("siteId")
 		if strings.Trim(siteId, " ") == "" {
@@ -27,7 +27,7 @@ func SiteMiddleware(siteService shared_interface.SiteServiceInterface) gin.Handl
 	}
 }
 
-func AuthMiddleware(authService shared_interface.AuthServiceInterface) gin.HandlerFunc {
+func AuthMiddleware(authService shared_interface.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken := c.GetHeader("Authorization")
 		if accessToken == "" {
@@ -46,7 +46,7 @@ func AuthMiddleware(authService shared_interface.AuthServiceInterface) gin.Handl
 	}
 }
 
-func AdminAuthMiddleware(authService shared_interface.AuthServiceInterface) gin.HandlerFunc {
+func AdminAuthMiddleware(authService shared_interface.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, exists := c.Get("claims")
 		if !exists {
