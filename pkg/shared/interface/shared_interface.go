@@ -18,6 +18,7 @@ type AuthService interface {
 	CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error)
 	FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error)
 	CheckAdminRole(role []interface{}) bool
+	RevokeSessionId(sessionId string)
 }
 
 type UserService interface {
@@ -29,5 +30,5 @@ type UserService interface {
 type TokenService interface {
 	ValidateRefreshToken(refreshToken string) string
 	StoreRefreshToken(username, refreshToken string) string
-	RevokeRefreshToken(refreshToken string) error
+	RevokeRefreshToken(refreshToken string) string
 }

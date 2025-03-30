@@ -94,10 +94,9 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
 		return
 	}
-	err = handler.tokenService.RevokeRefreshToken(refreshToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "revoke refresh token failed"})
-		return
+	sessionId := handler.tokenService.RevokeRefreshToken(refreshToken)
+	if len(sessionId) > 0 {
+		handler.authService.RevokeSessionId(sessionId)
 	}
 	auth_utils.DestroyCookieToken(c)
 	c.String(http.StatusOK, "Signed out")

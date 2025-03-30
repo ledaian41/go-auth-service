@@ -44,3 +44,17 @@ func (s *RedisClient) GetSessionVersion(username, siteId string) int {
 func (s *RedisClient) IncrementSessionVersion(username, siteId string) {
 	s.Client.Incr(s.Ctx, tokenVersionKey(username, siteId))
 }
+
+func sessionBlackListKey(sessionId string) string {
+	return fmt.Sprintf("session::blacklist::%s", sessionId)
+}
+
+func (s *RedisClient) AddSessionIdToBlackList(sessionId string) {
+	fmt.Println("black list", sessionBlackListKey(sessionId))
+	s.Client.Set(s.Ctx, sessionBlackListKey(sessionId), 1, AccessTokenExpire)
+}
+
+func (s *RedisClient) ValidateSessionId(sessionId string) bool {
+	existed, _ := s.Client.Get(s.Ctx, sessionBlackListKey(sessionId)).Int()
+	return existed == 0
+}

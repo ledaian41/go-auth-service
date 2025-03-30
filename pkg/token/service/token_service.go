@@ -43,8 +43,12 @@ func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
 	return sessionId
 }
 
-func (s *TokenService) RevokeRefreshToken(refreshToken string) error {
-	return s.db.Model(&token_model.UserToken{}).
-		Where("refresh_token = ?", refreshToken).
-		Delete(&token_model.UserToken{}).Error
+func (s *TokenService) RevokeRefreshToken(refreshToken string) string {
+	var token token_model.UserToken
+	if err := s.db.Where("refresh_token = ?", refreshToken).First(&token).Error; err != nil {
+		return ""
+	}
+
+	s.db.Where("refresh_token = ?", refreshToken).Delete(&token_model.UserToken{})
+	return token.ID
 }

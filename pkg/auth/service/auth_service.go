@@ -7,12 +7,6 @@ import (
 	"go-auth-service/pkg/shared/interface"
 	"go-auth-service/pkg/shared/utils"
 	"strings"
-	"time"
-)
-
-var (
-	accessExpireTime  = time.Minute * 15   // 15 minutes
-	refreshExpireTime = time.Hour * 24 * 7 // 1 week
 )
 
 type AuthService struct {

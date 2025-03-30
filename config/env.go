@@ -5,9 +5,15 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"time"
 )
 
 var Env *AppConfig
+
+const (
+	AccessTokenExpire  = time.Minute * 15   // 15 minutes
+	RefreshTokenExpire = time.Hour * 24 * 7 // 1 week
+)
 
 type AppConfig struct {
 	SecretKey string
