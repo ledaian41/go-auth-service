@@ -33,7 +33,7 @@ func tokenVersionKey(username, siteId string) string {
 	return fmt.Sprintf("%s::user::%s", siteId, username)
 }
 
-func (s *RedisClient) GetSessionVersion(username, siteId string) int {
+func (s *RedisClient) GetTokenVersion(username, siteId string) int {
 	version, err := s.Client.Get(s.Ctx, tokenVersionKey(username, siteId)).Int()
 	if err != nil {
 		return 0
@@ -41,7 +41,7 @@ func (s *RedisClient) GetSessionVersion(username, siteId string) int {
 	return version
 }
 
-func (s *RedisClient) IncrementSessionVersion(username, siteId string) {
+func (s *RedisClient) IncrementTokenVersion(username, siteId string) {
 	s.Client.Incr(s.Ctx, tokenVersionKey(username, siteId))
 }
 

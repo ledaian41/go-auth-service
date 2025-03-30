@@ -41,9 +41,9 @@ func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, erro
 		return nil, errors.New("token expired")
 	}
 
-	sessionVersion := s.redisClient.GetSessionVersion(claims["user"].(string), claims["site"].(string))
-	if int(claims["token_version"].(float64)) < sessionVersion {
-		return nil, errors.New("token expired")
+	tokenVersion := s.redisClient.GetTokenVersion(claims["user"].(string), claims["site"].(string))
+	if int(claims["token_version"].(float64)) < tokenVersion {
+		return nil, errors.New("token version expired")
 	}
 
 	return claims, nil
@@ -86,8 +86,8 @@ func (s *AuthService) ValidateAccessToken(site *shared_dto.SiteDTO, tokenStr str
 		return nil, errors.New("token expired")
 	}
 
-	sessionVersion := s.redisClient.GetSessionVersion(claims["user"].(string), site.ID)
-	if int(claims["token_version"].(float64)) < sessionVersion {
+	tokenVersion := s.redisClient.GetTokenVersion(claims["user"].(string), site.ID)
+	if int(claims["token_version"].(float64)) < tokenVersion {
 		return nil, errors.New("token version expired")
 	}
 
