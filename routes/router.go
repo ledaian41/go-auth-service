@@ -10,7 +10,7 @@ import (
 	"go-auth-service/pkg/auth/handler"
 	"go-auth-service/pkg/auth/service"
 	"go-auth-service/pkg/site/service"
-	token_service "go-auth-service/pkg/token/service"
+	"go-auth-service/pkg/token/service"
 	"go-auth-service/pkg/user/handler"
 	"go-auth-service/pkg/user/service"
 	"gorm.io/gorm"
