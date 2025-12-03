@@ -67,3 +67,11 @@ The **Authentication Service** is a microservice designed to handle user authent
 
 This service ensures secure authentication while adhering to OAuth2 best practices.
 
+## Generate protocol buffer
+```
+protoc \
+--go_out=. --go_opt=paths=source_relative \
+--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+proto/auth.proto
+```
+

@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 var Env *AppConfig
@@ -19,6 +20,7 @@ type AppConfig struct {
 	SecretKey string
 	RedisHost string
 	CachePath string
+	TcpPort   string
 }
 
 func LoadConfig() {
@@ -32,5 +34,6 @@ func LoadConfig() {
 		SecretKey: os.Getenv("SECRET_KEY"),
 		RedisHost: os.Getenv("REDIS_HOST"),
 		CachePath: os.Getenv("CACHE_PATH"),
+		TcpPort:   os.Getenv("TCP_PORT"),
 	}
 }

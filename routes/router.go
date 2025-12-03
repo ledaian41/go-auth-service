@@ -1,9 +1,6 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"go-auth-service/config"
 	_ "go-auth-service/docs"
 	"go-auth-service/middleware"
@@ -13,13 +10,19 @@ import (
 	"go-auth-service/pkg/token/service"
 	"go-auth-service/pkg/user/handler"
 	"go-auth-service/pkg/user/service"
-	"gorm.io/gorm"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 )
 
 func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 	r := gin.Default()
-	//gin.SetMode(gin.ReleaseMode) for production
+
+	r.Use(gin.Recovery())
+	r.Use(gin.Logger())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})

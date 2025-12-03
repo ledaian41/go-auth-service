@@ -2,11 +2,12 @@ package main
 
 import (
 	"go-auth-service/config"
-	"go-auth-service/pkg/user/model"
-	"go-auth-service/routes"
-	"log"
-	"os"
+	auth "go-auth-service/proto"
 )
+
+type AuthServer struct {
+	auth.UnimplementedAuthServer
+}
 
 // @title Authentication Service API
 // @version 1.0
@@ -15,17 +16,10 @@ import (
 // @BasePath /
 func main() {
 	config.LoadConfig()
-	db := config.InitDatabase()
-	redisClient := config.InitRedisClient()
 
-	_ = user_model.LoadUsersFromFile("./pkg/user/data/userData.json")
+	go startHttp() // Run Gin HTTP server
 
-	r := routes.SetupRouter(db, redisClient)
+	go startGrpc() // Run gRPC server
 
-	port := os.Getenv("APP_PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Println("Server running on port", port)
-	r.Run(":" + port)
+	select {}
 }
