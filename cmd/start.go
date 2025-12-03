@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go-auth-service/config"
 	user_model "go-auth-service/pkg/user/model"
@@ -12,6 +13,11 @@ import (
 
 	"google.golang.org/grpc"
 )
+
+func (s *AuthServer) Ping(ctx context.Context, req *auth.HelloRequest) (*auth.HelloResponse, error) {
+	log.Printf("Received: %s", req.Name)
+	return &auth.HelloResponse{Message: "Hello, " + req.Name}, nil
+}
 
 func startGrpc() {
 	tcpPort := os.Getenv("TCP_PORT")
