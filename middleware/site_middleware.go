@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-auth-service/pkg/shared/interface"
+	"go-auth-service/internal/shared/interface"
 	"net/http"
 	"strings"
 )

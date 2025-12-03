@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"go-auth-service/pkg/shared/interface"
+	"go-auth-service/internal/shared/interface"
 	"net/http"
 )
 

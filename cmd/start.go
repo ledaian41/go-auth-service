@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go-auth-service/config"
-	user_model "go-auth-service/pkg/user/model"
+	user_model "go-auth-service/internal/user/model"
 	auth "go-auth-service/proto"
 	"go-auth-service/routes"
 	"log"
@@ -38,7 +38,7 @@ func startHttp() {
 	db := config.InitDatabase()
 	redisClient := config.InitRedisClient()
 
-	_ = user_model.LoadUsersFromFile("./pkg/user/data/userData.json")
+	_ = user_model.LoadUsersFromFile("./internal/user/data/userData.json")
 
 	r := routes.SetupRouter(db, redisClient)
 
