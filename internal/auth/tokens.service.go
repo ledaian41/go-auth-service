@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, error) {
+func (s *Service) GenerateRefreshToken(user *shared_dto.UserDTO) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user":          user.Username,
 		"site":          user.Site,
@@ -21,7 +21,7 @@ func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, er
 	return token.SignedString([]byte(config.Env.SecretKey))
 }
 
-func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
+func (s *Service) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -50,7 +50,7 @@ func (s *AuthService) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, erro
 	return claims, nil
 }
 
-func (s *AuthService) GenerateAccessToken(siteSecretKey, sessionId string, user *shared_dto.UserDTO) (string, error) {
+func (s *Service) GenerateAccessToken(siteSecretKey, sessionId string, user *shared_dto.UserDTO) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user":          user.Username,
 		"role":          user.Role,
@@ -66,7 +66,7 @@ func (s *AuthService) GenerateAccessToken(siteSecretKey, sessionId string, user 
 	return token.SignedString([]byte(siteSecretKey))
 }
 
-func (s *AuthService) ValidateAccessToken(site *shared_dto.SiteDTO, tokenStr string) (jwt.MapClaims, error) {
+func (s *Service) ValidateAccessToken(site *shared_dto.SiteDTO, tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -101,6 +101,6 @@ func (s *AuthService) ValidateAccessToken(site *shared_dto.SiteDTO, tokenStr str
 	return claims, nil
 }
 
-func (s *AuthService) RevokeSessionId(sessionId string) {
+func (s *Service) RevokeSessionId(sessionId string) {
 	s.redisClient.AddSessionIdToBlackList(sessionId)
 }

@@ -2,12 +2,7 @@ package main
 
 import (
 	"go-auth-service/config"
-	auth "go-auth-service/proto"
 )
-
-type AuthServer struct {
-	auth.UnimplementedAuthServer
-}
 
 // @title Authentication Service API
 // @version 1.0

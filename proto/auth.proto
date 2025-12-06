@@ -6,6 +6,9 @@ option go_package = "go-auth-service/proto/auth";
 
 service Auth {
   rpc Ping (HelloRequest) returns (HelloResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+//  rpc RefreshToken (LoginRequest) returns (LoginResponse);
+//  rpc JWT (LoginRequest) returns (LoginResponse);
 }
 
 message HelloRequest {
@@ -14,4 +17,15 @@ message HelloRequest {
 
 message HelloResponse {
   string message = 1;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+  string site = 3;
+}
+
+message LoginResponse {
+  string refreshToken = 1;
+  string accessToken = 2;
 }

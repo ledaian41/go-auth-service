@@ -1,11 +1,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"go-auth-service/config"
+	"go-auth-service/internal/auth"
+	"go-auth-service/internal/site"
+	"go-auth-service/internal/token"
 	"go-auth-service/internal/user"
-	auth "go-auth-service/proto"
+	proto "go-auth-service/proto"
 	"go-auth-service/routes"
 	"log"
 	"net"
@@ -14,12 +16,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *AuthServer) Ping(ctx context.Context, req *auth.HelloRequest) (*auth.HelloResponse, error) {
-	log.Printf("Received: %s", req.Name)
-	return &auth.HelloResponse{Message: "Hello, " + req.Name}, nil
-}
-
 func startGrpc() {
+	db := config.InitDatabase()
+	redisClient := config.InitRedisClient()
+
 	tcpPort := os.Getenv("TCP_PORT")
 	lis, err := net.Listen("tcp", ":"+tcpPort)
 	if err != nil {
@@ -27,7 +27,16 @@ func startGrpc() {
 	}
 
 	grpcServer := grpc.NewServer()
-	auth.RegisterAuthServer(grpcServer, &AuthServer{})
+
+	siteService := site.NewSiteService()
+	userService := user.NewUserService(db)
+	userService.MigrateDatabase()
+	tokenService := token.NewTokenService(db)
+	tokenService.MigrateDatabase()
+	authService := auth.NewAuthService(redisClient, userService)
+	grpcHandler := auth.New(siteService, authService, tokenService)
+
+	proto.RegisterAuthServer(grpcServer, grpcHandler)
 	log.Println("🌤️gRPC server running on :", tcpPort)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Println("Failed to serve:", err)

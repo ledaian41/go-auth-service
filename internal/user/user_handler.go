@@ -18,5 +18,5 @@ func NewUserHandler(userService shared_interface.UserService) *UserHandler {
 func (handler *UserHandler) GetUserList(c *gin.Context) {
 	siteId := c.Param("siteId")
 	responses := handler.userService.FindUsersBySite(siteId)
-	c.IndentedJSON(http.StatusOK, responses)
+	c.JSON(http.StatusOK, responses)
 }

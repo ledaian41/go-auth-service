@@ -10,16 +10,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type AuthHandler struct {
+type HttpHandler struct {
 	authService  shared_interface.AuthService
 	tokenService shared_interface.TokenService
 }
 
-func NewAuthHandler(authService shared_interface.AuthService, tokenService shared_interface.TokenService) *AuthHandler {
-	return &AuthHandler{authService: authService, tokenService: tokenService}
+func NewAuthHandler(authService shared_interface.AuthService, tokenService shared_interface.TokenService) *HttpHandler {
+	return &HttpHandler{authService: authService, tokenService: tokenService}
 }
 
-func (handler *AuthHandler) Register(c *gin.Context) {
+func (handler *HttpHandler) Register(c *gin.Context) {
 	var newAccount shared_dto.RegisterRequestDTO
 	if err := c.ShouldBind(&newAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -53,7 +53,7 @@ func (handler *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
-func (handler *AuthHandler) Login(c *gin.Context) {
+func (handler *HttpHandler) Login(c *gin.Context) {
 	var loginAccount shared_dto.LoginRequestDTO
 	if err := c.ShouldBind(&loginAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -85,10 +85,10 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"token": accessToken})
+	c.JSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
-func (handler *AuthHandler) Logout(c *gin.Context) {
+func (handler *HttpHandler) Logout(c *gin.Context) {
 	refreshToken, err := GetCookieToken(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
@@ -102,7 +102,7 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 	c.String(http.StatusOK, "Signed out")
 }
 
-func (handler *AuthHandler) RefreshToken(c *gin.Context) {
+func (handler *HttpHandler) RefreshToken(c *gin.Context) {
 	refreshToken, err := GetCookieToken(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
@@ -139,10 +139,10 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"token": accessToken})
+	c.JSON(http.StatusOK, gin.H{"token": accessToken})
 }
 
-func (handler *AuthHandler) JWT(c *gin.Context) {
+func (handler *HttpHandler) JWT(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})

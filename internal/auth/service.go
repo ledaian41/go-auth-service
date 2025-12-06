@@ -9,19 +9,19 @@ import (
 	"strings"
 )
 
-type AuthService struct {
+type Service struct {
 	userService shared_interface.UserService
 	redisClient *config.RedisClient
 }
 
-func NewAuthService(redisClient *config.RedisClient, userService shared_interface.UserService) *AuthService {
-	return &AuthService{
+func NewAuthService(redisClient *config.RedisClient, userService shared_interface.UserService) *Service {
+	return &Service{
 		redisClient: redisClient,
 		userService: userService,
 	}
 }
 
-func (s *AuthService) CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error) {
+func (s *Service) CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error) {
 	if len(strings.Trim(username, " ")) == 0 {
 		return nil, errors.New("invalid username or password")
 	}
@@ -42,7 +42,7 @@ func (s *AuthService) CheckValidUser(username, password, siteId string) (*shared
 	return user, nil
 }
 
-func (s *AuthService) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error) {
+func (s *Service) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error) {
 	hashedPassword, err := shared_utils.HashPassword(account.Password)
 	if err != nil {
 		return nil, err
@@ -58,11 +58,11 @@ func (s *AuthService) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (
 	return s.userService.CreateNewUser(&newUser)
 }
 
-func (s *AuthService) FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error) {
+func (s *Service) FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error) {
 	return s.userService.FindUserByUsername(username, siteId)
 }
 
-func (s *AuthService) CheckAdminRole(role []interface{}) bool {
+func (s *Service) CheckAdminRole(role []interface{}) bool {
 	for _, r := range role {
 		if r == "admin" {
 			return true
