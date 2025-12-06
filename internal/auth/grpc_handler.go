@@ -5,7 +5,6 @@ import (
 	"errors"
 	shared_interface "go-auth-service/internal/shared/interface"
 	"go-auth-service/proto"
-	"log"
 )
 
 type GrpcHandler struct {
@@ -20,12 +19,10 @@ func New(siteService shared_interface.SiteService, authService shared_interface.
 }
 
 func (handler *GrpcHandler) Ping(_ context.Context, req *auth.HelloRequest) (*auth.HelloResponse, error) {
-	log.Printf("Received: %s", req.Name)
 	return &auth.HelloResponse{Message: "Hello, " + req.Name}, nil
 }
 
 func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
-	log.Printf("Received: %s - %s", req.Username, req.Password)
 	siteId := req.Site
 	if siteId == "" {
 		siteId = "app"
@@ -47,6 +44,64 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 	}
 
 	site := handler.siteService.CheckSiteExists(siteId)
+	if site == nil {
+		return nil, errors.New("site not found")
+	}
+
 	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	return &auth.LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+}
+
+func (handler *GrpcHandler) RefreshToken(_ context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
+	claims, err := handler.authService.ValidateRefreshToken(req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionId := handler.tokenService.ValidateRefreshToken(req.RefreshToken)
+	if len(sessionId) == 0 {
+		return nil, errors.New("error saving refresh token")
+	}
+
+	site := handler.siteService.CheckSiteExists(req.Site)
+	if site == nil {
+		return nil, errors.New("site not found")
+	}
+
+	user, err := handler.authService.FindUserByUsername(claims["user"].(string), site.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.RefreshTokenResponse{AccessToken: accessToken}, nil
+}
+
+func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.JwtResponse, error) {
+	siteId := req.Site
+	if siteId == "" {
+		siteId = "app"
+	}
+
+	site := handler.siteService.CheckSiteExists(siteId)
+	if site == nil {
+		return nil, errors.New("site not found")
+	}
+
+	claims, err := handler.authService.ValidateAccessToken(site, req.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.JwtResponse{
+		Username: claims["user"].(string),
+		Role:     claims["role"].(string),
+		Name:     claims["name"].(string),
+		Email:    claims["email"].(string),
+		Phone:    claims["phone"].(string),
+	}, nil
 }
