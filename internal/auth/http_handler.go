@@ -1,7 +1,6 @@
-package auth_handler
+package auth
 
 import (
-	"go-auth-service/internal/auth/utils"
 	"go-auth-service/internal/shared/dto"
 	"go-auth-service/internal/shared/interface"
 	"go-auth-service/internal/shared/utils"
@@ -38,7 +37,7 @@ func (handler *AuthHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
-	auth_utils.SetCookieToken(c, refreshToken)
+	SetCookieToken(c, refreshToken)
 	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
 	if len(sessionId) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
@@ -73,7 +72,7 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
-	auth_utils.SetCookieToken(c, refreshToken)
+	SetCookieToken(c, refreshToken)
 	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
 	if len(sessionId) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
@@ -90,7 +89,7 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 }
 
 func (handler *AuthHandler) Logout(c *gin.Context) {
-	refreshToken, err := auth_utils.GetCookieToken(c)
+	refreshToken, err := GetCookieToken(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
 		return
@@ -99,12 +98,12 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 	if len(sessionId) > 0 {
 		handler.authService.RevokeSessionId(sessionId)
 	}
-	auth_utils.DestroyCookieToken(c)
+	DestroyCookieToken(c)
 	c.String(http.StatusOK, "Signed out")
 }
 
 func (handler *AuthHandler) RefreshToken(c *gin.Context) {
-	refreshToken, err := auth_utils.GetCookieToken(c)
+	refreshToken, err := GetCookieToken(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
 		return

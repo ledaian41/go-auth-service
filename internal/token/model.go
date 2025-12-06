@@ -1,4 +1,4 @@
-package token_model
+package token
 
 import "time"
 

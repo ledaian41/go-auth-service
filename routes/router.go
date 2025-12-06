@@ -3,12 +3,10 @@ package routes
 import (
 	"go-auth-service/config"
 	_ "go-auth-service/docs"
-	"go-auth-service/internal/auth/handler"
-	"go-auth-service/internal/auth/service"
-	"go-auth-service/internal/site/service"
-	"go-auth-service/internal/token/service"
-	"go-auth-service/internal/user/handler"
-	"go-auth-service/internal/user/service"
+	"go-auth-service/internal/auth"
+	"go-auth-service/internal/site"
+	"go-auth-service/internal/token"
+	"go-auth-service/internal/user"
 	"go-auth-service/middleware"
 	"net/http"
 
@@ -30,25 +28,25 @@ func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	siteService := site_service.NewSiteService()
+	siteService := site.NewSiteService()
 	r.Use(middleware.SiteMiddleware(siteService))
 
-	userService := user_service.NewUserService(db)
+	userService := user.NewUserService(db)
 	userService.MigrateDatabase()
 
-	tokenService := token_service.NewTokenService(db)
+	tokenService := token.NewTokenService(db)
 	tokenService.MigrateDatabase()
 
-	authService := auth_service.NewAuthService(redisClient, userService)
+	authService := auth.NewAuthService(redisClient, userService)
 
-	AuthHandler := auth_handler.NewAuthHandler(authService, tokenService)
+	AuthHandler := auth.NewAuthHandler(authService, tokenService)
 	r.GET("/:siteId/jwt", middleware.AuthMiddleware(authService), AuthHandler.JWT)
 	r.GET("/:siteId/refresh", AuthHandler.RefreshToken)
 	r.POST("/:siteId/signup", AuthHandler.Register)
 	r.POST("/:siteId/login", AuthHandler.Login)
 	r.GET("/:siteId/signout", AuthHandler.Logout)
 
-	UserHandler := user_handler.NewUserHandler(userService)
+	UserHandler := user.NewUserHandler(userService)
 	r.GET("/:siteId/users", middleware.AuthMiddleware(authService), middleware.AdminAuthMiddleware(authService), UserHandler.GetUserList)
 
 	return r

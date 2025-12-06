@@ -1,4 +1,4 @@
-package user_model
+package user
 
 import (
 	"encoding/json"

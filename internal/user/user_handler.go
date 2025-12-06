@@ -1,9 +1,10 @@
-package user_handler
+package user
 
 import (
-	"github.com/gin-gonic/gin"
 	"go-auth-service/internal/shared/interface"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {

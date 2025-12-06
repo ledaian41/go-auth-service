@@ -1,4 +1,4 @@
-package site_model
+package site
 
 import "go-auth-service/internal/shared/dto"
 

@@ -1,9 +1,10 @@
-package auth_utils
+package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	"go-auth-service/internal/shared/dto"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetCookieToken(c *gin.Context, token string) {

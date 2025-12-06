@@ -1,8 +1,7 @@
-package site_service
+package site
 
 import (
 	"go-auth-service/internal/shared/dto"
-	"go-auth-service/internal/site/data"
 )
 
 type SiteService struct{}
@@ -12,7 +11,7 @@ func NewSiteService() *SiteService {
 }
 
 func (s *SiteService) CheckSiteExists(siteId string) *shared_dto.SiteDTO {
-	for _, site := range site_data.SiteData() {
+	for _, site := range GetData() {
 		if site.ID == siteId {
 			siteCopy := site.ToDTO()
 			return &siteCopy

@@ -1,12 +1,13 @@
-package auth_service
+package auth
 
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/config"
 	"go-auth-service/internal/shared/dto"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func (s *AuthService) GenerateRefreshToken(user *shared_dto.UserDTO) (string, error) {

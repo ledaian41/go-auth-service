@@ -1,10 +1,10 @@
-package token_service
+package token
 
 import (
 	"go-auth-service/internal/shared/utils"
-	"go-auth-service/internal/token/model"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
 )
 
 type TokenService struct {
@@ -16,7 +16,7 @@ func NewTokenService(db *gorm.DB) *TokenService {
 }
 
 func (s *TokenService) MigrateDatabase() {
-	err := s.db.AutoMigrate(&token_model.UserToken{})
+	err := s.db.AutoMigrate(&UserToken{})
 	if err != nil {
 		log.Printf("❌ Failed at AutoMigrate: %v", err)
 	}
@@ -24,14 +24,14 @@ func (s *TokenService) MigrateDatabase() {
 }
 
 func (s *TokenService) ValidateRefreshToken(refreshToken string) string {
-	var token token_model.UserToken
+	var token UserToken
 	_ = s.db.Where("refresh_token = ?", refreshToken).First(&token).Error
 	return token.ID
 }
 
 func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
 	sessionId := shared_utils.RandomID()
-	token := token_model.UserToken{
+	token := UserToken{
 		ID:           sessionId,
 		UserID:       username,
 		RefreshToken: refreshToken,
@@ -44,11 +44,11 @@ func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
 }
 
 func (s *TokenService) RevokeRefreshToken(refreshToken string) string {
-	var token token_model.UserToken
+	var token UserToken
 	if err := s.db.Where("refresh_token = ?", refreshToken).First(&token).Error; err != nil {
 		return ""
 	}
 
-	s.db.Where("refresh_token = ?", refreshToken).Delete(&token_model.UserToken{})
+	s.db.Where("refresh_token = ?", refreshToken).Delete(&UserToken{})
 	return token.ID
 }
