@@ -53,6 +53,10 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 }
 
 func (handler *GrpcHandler) RefreshToken(_ context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
+	if req.RefreshToken == "" {
+		return nil, errors.New("invalid refresh token")
+	}
+
 	claims, err := handler.authService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
 		return nil, err
@@ -63,7 +67,11 @@ func (handler *GrpcHandler) RefreshToken(_ context.Context, req *auth.RefreshTok
 		return nil, errors.New("error saving refresh token")
 	}
 
-	site := handler.siteService.CheckSiteExists(req.Site)
+	siteId := req.Site
+	if siteId == "" {
+		siteId = "app"
+	}
+	site := handler.siteService.CheckSiteExists(siteId)
 	if site == nil {
 		return nil, errors.New("site not found")
 	}
@@ -92,6 +100,10 @@ func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.
 		return nil, errors.New("site not found")
 	}
 
+	if req.AccessToken == "" {
+		return nil, errors.New("invalid access token")
+	}
+
 	claims, err := handler.authService.ValidateAccessToken(site, req.AccessToken)
 	if err != nil {
 		return nil, err
@@ -103,5 +115,20 @@ func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.
 		Name:     claims["name"].(string),
 		Email:    claims["email"].(string),
 		Phone:    claims["phone"].(string),
+	}, nil
+}
+
+func (handler *GrpcHandler) Logout(_ context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
+	siteId := req.Site
+	if siteId == "" {
+		siteId = "app"
+	}
+
+	sessionId := handler.tokenService.RevokeRefreshToken(req.RefreshToken)
+	if len(sessionId) > 0 {
+		handler.authService.RevokeSessionId(sessionId)
+	}
+	return &auth.LogoutResponse{
+		Status: true,
 	}, nil
 }

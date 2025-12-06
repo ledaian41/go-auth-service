@@ -445,6 +445,102 @@ func (x *JwtResponse) GetPhone() string {
 	return ""
 }
 
+type LogoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refreshToken,proto3" json:"refreshToken,omitempty"`
+	Site          string                 `protobuf:"bytes,2,opt,name=site,proto3" json:"site,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
+	mi := &file_proto_auth_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutRequest) ProtoMessage() {}
+
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LogoutRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *LogoutRequest) GetSite() string {
+	if x != nil {
+		return x.Site
+	}
+	return ""
+}
+
+type LogoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        bool                   `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutResponse) Reset() {
+	*x = LogoutResponse{}
+	mi := &file_proto_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutResponse) ProtoMessage() {}
+
+func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
+func (*LogoutResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LogoutResponse) GetStatus() bool {
+	if x != nil {
+		return x.Status
+	}
+	return false
+}
+
 var File_proto_auth_proto protoreflect.FileDescriptor
 
 const file_proto_auth_proto_rawDesc = "" +
@@ -475,12 +571,18 @@ const file_proto_auth_proto_rawDesc = "" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x04 \x01(\tR\x05email\x12\x14\n" +
-	"\x05phone\x18\x05 \x01(\tR\x05phone2\xdc\x01\n" +
+	"\x05phone\x18\x05 \x01(\tR\x05phone\"G\n" +
+	"\rLogoutRequest\x12\"\n" +
+	"\frefreshToken\x18\x01 \x01(\tR\frefreshToken\x12\x12\n" +
+	"\x04site\x18\x02 \x01(\tR\x04site\"(\n" +
+	"\x0eLogoutResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\bR\x06status2\x91\x02\n" +
 	"\x04Auth\x12/\n" +
 	"\x04Ping\x12\x12.auth.HelloRequest\x1a\x13.auth.HelloResponse\x120\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\x12E\n" +
 	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\x12*\n" +
-	"\x03JWT\x12\x10.auth.JwtRequest\x1a\x11.auth.JwtResponseB\x1cZ\x1ago-auth-service/proto/authb\x06proto3"
+	"\x03JWT\x12\x10.auth.JwtRequest\x1a\x11.auth.JwtResponse\x123\n" +
+	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponseB\x1cZ\x1ago-auth-service/proto/authb\x06proto3"
 
 var (
 	file_proto_auth_proto_rawDescOnce sync.Once
@@ -494,7 +596,7 @@ func file_proto_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_proto_rawDescData
 }
 
-var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_auth_proto_goTypes = []any{
 	(*HelloRequest)(nil),         // 0: auth.HelloRequest
 	(*HelloResponse)(nil),        // 1: auth.HelloResponse
@@ -504,18 +606,22 @@ var file_proto_auth_proto_goTypes = []any{
 	(*RefreshTokenResponse)(nil), // 5: auth.RefreshTokenResponse
 	(*JwtRequest)(nil),           // 6: auth.JwtRequest
 	(*JwtResponse)(nil),          // 7: auth.JwtResponse
+	(*LogoutRequest)(nil),        // 8: auth.LogoutRequest
+	(*LogoutResponse)(nil),       // 9: auth.LogoutResponse
 }
 var file_proto_auth_proto_depIdxs = []int32{
 	0, // 0: auth.Auth.Ping:input_type -> auth.HelloRequest
 	2, // 1: auth.Auth.Login:input_type -> auth.LoginRequest
 	4, // 2: auth.Auth.RefreshToken:input_type -> auth.RefreshTokenRequest
 	6, // 3: auth.Auth.JWT:input_type -> auth.JwtRequest
-	1, // 4: auth.Auth.Ping:output_type -> auth.HelloResponse
-	3, // 5: auth.Auth.Login:output_type -> auth.LoginResponse
-	5, // 6: auth.Auth.RefreshToken:output_type -> auth.RefreshTokenResponse
-	7, // 7: auth.Auth.JWT:output_type -> auth.JwtResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	8, // 4: auth.Auth.Logout:input_type -> auth.LogoutRequest
+	1, // 5: auth.Auth.Ping:output_type -> auth.HelloResponse
+	3, // 6: auth.Auth.Login:output_type -> auth.LoginResponse
+	5, // 7: auth.Auth.RefreshToken:output_type -> auth.RefreshTokenResponse
+	7, // 8: auth.Auth.JWT:output_type -> auth.JwtResponse
+	9, // 9: auth.Auth.Logout:output_type -> auth.LogoutResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -532,7 +638,7 @@ func file_proto_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_proto_rawDesc), len(file_proto_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

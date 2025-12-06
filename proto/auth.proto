@@ -9,6 +9,7 @@ service Auth {
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc JWT (JwtRequest) returns (JwtResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
 }
 
 message HelloRequest {
@@ -50,4 +51,13 @@ message JwtResponse {
   string name = 3;
   string email = 4;
   string phone = 5;
+}
+
+message LogoutRequest {
+  string refreshToken = 1;
+  string site = 2;
+}
+
+message LogoutResponse{
+  bool status = 1;
 }
