@@ -38,8 +38,8 @@ func (handler *HttpHandler) Register(c *gin.Context) {
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
-	if len(sessionId) == 0 {
+	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
@@ -73,8 +73,8 @@ func (handler *HttpHandler) Login(c *gin.Context) {
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
-	if len(sessionId) == 0 {
+	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}

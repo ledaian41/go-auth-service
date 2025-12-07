@@ -38,8 +38,8 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 		return nil, err
 	}
 
-	sessionId := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
-	if len(sessionId) == 0 {
+	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	if err != nil {
 		return nil, errors.New("error saving refresh token")
 	}
 

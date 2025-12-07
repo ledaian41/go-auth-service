@@ -29,7 +29,7 @@ func (s *TokenService) ValidateRefreshToken(refreshToken string) string {
 	return token.ID
 }
 
-func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
+func (s *TokenService) StoreRefreshToken(username, refreshToken string) (string, error) {
 	sessionId := shared_utils.RandomID()
 	token := UserToken{
 		ID:           sessionId,
@@ -38,9 +38,9 @@ func (s *TokenService) StoreRefreshToken(username, refreshToken string) string {
 	}
 	if err := s.db.Create(&token).Error; err != nil {
 		log.Println("error create token in database", err)
-		return ""
+		return "", err
 	}
-	return sessionId
+	return sessionId, nil
 }
 
 func (s *TokenService) RevokeRefreshToken(refreshToken string) string {

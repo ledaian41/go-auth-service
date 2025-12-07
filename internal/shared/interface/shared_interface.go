@@ -1,8 +1,9 @@
 package shared_interface
 
 import (
-	"github.com/golang-jwt/jwt/v5"
 	"go-auth-service/internal/shared/dto"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type SiteService interface {
@@ -29,6 +30,6 @@ type UserService interface {
 
 type TokenService interface {
 	ValidateRefreshToken(refreshToken string) string
-	StoreRefreshToken(username, refreshToken string) string
+	StoreRefreshToken(username, refreshToken string) (string, error)
 	RevokeRefreshToken(refreshToken string) string
 }
