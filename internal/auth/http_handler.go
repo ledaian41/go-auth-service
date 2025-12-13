@@ -145,7 +145,7 @@ func (handler *HttpHandler) RefreshToken(c *gin.Context) {
 func (handler *HttpHandler) JWT(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "user not found"})
 		return
 	}
 
