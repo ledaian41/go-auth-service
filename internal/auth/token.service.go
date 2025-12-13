@@ -113,3 +113,64 @@ func (s *Service) ValidateAccessToken(site *shared.SiteDTO, tokenStr string) (jw
 func (s *Service) RevokeSessionId(sessionId string) {
 	s.redisClient.AddSessionIdToBlackList(sessionId)
 }
+
+func (s *Service) RotateRefreshToken(site *shared.SiteDTO, oldRefreshToken string) (string, string, error) {
+	// 1. Validate old refresh token (format & expiration)
+	claims, err := s.ValidateRefreshToken(oldRefreshToken)
+	if err != nil {
+		return "", "", err
+	}
+
+	// 2. Check JTI in Allowlist
+	oldSessionId, ok := claims["jti"].(string)
+	if !ok {
+		return "", "", errors.New("invalid jti claim")
+	}
+
+	if s.tokenService.ValidateRefreshToken(oldSessionId) == "" {
+		return "", "", errors.New("refresh token revoked or invalid")
+	}
+
+	// 3. Revoke old JTI (One-time usage policy)
+	s.tokenService.RevokeRefreshToken(oldSessionId)
+
+	// 4. Verify Site Match
+	tokenSiteId, ok := claims["site"].(string)
+	if !ok || tokenSiteId != site.ID {
+		return "", "", errors.New("site mismatch")
+	}
+
+	// 5. Find User
+	username, ok := claims["user"].(string)
+	if !ok {
+		return "", "", errors.New("invalid user claim")
+	}
+
+	user, err := s.userService.FindUserByUsername(username, site.ID)
+	if err != nil {
+		return "", "", err
+	}
+
+	// 6. Generate New session (JTI)
+	newSessionId := shared.RandomID()
+
+	// 7. Generate New Refresh Token
+	newRefreshToken, err := s.GenerateRefreshToken(user, newSessionId)
+	if err != nil {
+		return "", "", err
+	}
+
+	// 8. Store New JTI
+	_, err = s.tokenService.StoreRefreshToken(user.Username, newSessionId)
+	if err != nil {
+		return "", "", errors.New("failed to store refresh token")
+	}
+
+	// 9. Generate New Access Token
+	newAccessToken, err := s.GenerateAccessToken(site.SecretKey, newSessionId, user)
+	if err != nil {
+		return "", "", err
+	}
+
+	return newAccessToken, newRefreshToken, nil
+}

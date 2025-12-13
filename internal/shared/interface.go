@@ -15,9 +15,9 @@ type AuthService interface {
 	GenerateRefreshToken(user *UserDTO, sessionId string) (string, error)
 	ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error)
 	CheckValidUser(username, password, siteId string) (*UserDTO, error)
-	FindUserByUsername(username, siteId string) (*UserDTO, error)
 	CheckAdminRole(role []interface{}) bool
 	RevokeSessionId(sessionId string)
+	RotateRefreshToken(site *SiteDTO, oldRefreshToken string) (newAccessToken, newRefreshToken string, err error)
 }
 
 type UserService interface {

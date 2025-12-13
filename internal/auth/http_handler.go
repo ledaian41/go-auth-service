@@ -115,33 +115,20 @@ func (handler *HttpHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	claims, err := handler.authService.ValidateRefreshToken(refreshToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
-		return
-	}
-
-	sessionId := claims["jti"].(string)
-
 	site, _ := shared.ReadSiteContext(c)
-	if site.ID != claims["site"].(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "site not matched"})
+	if site == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "site context missing"})
 		return
 	}
 
-	user, err := handler.authService.FindUserByUsername(claims["user"].(string), site.ID)
+	newAccessToken, newRefreshToken, err := handler.authService.RotateRefreshToken(site, refreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 		return
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": accessToken})
+	SetCookieToken(c, newRefreshToken)
+	c.JSON(http.StatusOK, gin.H{"token": newAccessToken})
 }
 
 func (handler *HttpHandler) JWT(c *gin.Context) {

@@ -30,7 +30,7 @@ func (s *Service) CheckValidUser(username, password, siteId string) (*shared.Use
 		return nil, errors.New("invalid username or password")
 	}
 
-	user, err := s.FindUserByUsername(username, siteId)
+	user, err := s.userService.FindUserByUsername(username, siteId)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +56,6 @@ func (s *Service) CreateNewAccount(account *shared.RegisterRequestDTO) (*shared.
 		Role:        "user",
 	}
 	return s.userService.CreateNewUser(&newUser)
-}
-
-func (s *Service) FindUserByUsername(username, siteId string) (*shared.UserDTO, error) {
-	return s.userService.FindUserByUsername(username, siteId)
 }
 
 func (s *Service) CheckAdminRole(role []interface{}) bool {

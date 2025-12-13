@@ -58,33 +58,22 @@ func (handler *GrpcHandler) RefreshToken(_ context.Context, req *auth.RefreshTok
 		return nil, errors.New("invalid refresh token")
 	}
 
-	claims, err := handler.authService.ValidateRefreshToken(req.RefreshToken)
-	if err != nil {
-		return nil, err
-	}
-
-	sessionId := claims["jti"].(string)
-
 	siteId := req.Site
 	if siteId == "" {
 		siteId = "app"
 	}
+
 	site := handler.siteService.CheckSiteExists(siteId)
 	if site == nil {
 		return nil, errors.New("site not found")
 	}
 
-	user, err := handler.authService.FindUserByUsername(claims["user"].(string), site.ID)
+	newAccessToken, newRefreshToken, err := handler.authService.RotateRefreshToken(site, req.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &auth.RefreshTokenResponse{AccessToken: accessToken}, nil
+	return &auth.RefreshTokenResponse{AccessToken: newAccessToken, RefreshToken: newRefreshToken}, nil
 }
 
 func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.JwtResponse, error) {

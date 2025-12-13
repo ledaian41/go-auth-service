@@ -38,6 +38,7 @@ message RefreshTokenRequest {
 
 message RefreshTokenResponse {
   string accessToken = 1;
+  string refreshToken = 2;
 }
 
 message JwtRequest {
