@@ -1,13 +1,14 @@
-package shared_utils
+package shared
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"github.com/gin-gonic/gin"
-	shared_dto "go-auth-service/internal/shared/dto"
-	"golang.org/x/crypto/bcrypt"
 	"log"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Filter[T any](arr []T, predicate func(T) bool) []T {
@@ -50,12 +51,17 @@ func RandomID() string {
 	return hex.EncodeToString(b)
 }
 
-func ReadSiteContext(c *gin.Context) (*shared_dto.SiteDTO, error) {
+func ReadSiteContext(c *gin.Context) (*SiteDTO, error) {
 	// Check site from middleware
 	site, exists := c.Get("site")
 	if !exists {
 		return nil, errors.New("no site info, have to use site middleware")
 	}
 
-	return site.(*shared_dto.SiteDTO), nil
+	return site.(*SiteDTO), nil
+}
+
+func HashToken(token string) string {
+	hash := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(hash[:])
 }

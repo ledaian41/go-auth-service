@@ -3,25 +3,25 @@ package auth
 import (
 	"errors"
 	"go-auth-service/config"
-	"go-auth-service/internal/shared/dto"
-	"go-auth-service/internal/shared/interface"
-	"go-auth-service/internal/shared/utils"
+	"go-auth-service/internal/shared"
 	"strings"
 )
 
 type Service struct {
-	userService shared_interface.UserService
-	redisClient *config.RedisClient
+	userService  shared.UserService
+	tokenService shared.TokenService
+	redisClient  *config.RedisClient
 }
 
-func NewAuthService(redisClient *config.RedisClient, userService shared_interface.UserService) *Service {
+func NewAuthService(redisClient *config.RedisClient, userService shared.UserService, tokenService shared.TokenService) *Service {
 	return &Service{
-		redisClient: redisClient,
-		userService: userService,
+		redisClient:  redisClient,
+		userService:  userService,
+		tokenService: tokenService,
 	}
 }
 
-func (s *Service) CheckValidUser(username, password, siteId string) (*shared_dto.UserDTO, error) {
+func (s *Service) CheckValidUser(username, password, siteId string) (*shared.UserDTO, error) {
 	if len(strings.Trim(username, " ")) == 0 {
 		return nil, errors.New("invalid username or password")
 	}
@@ -35,20 +35,20 @@ func (s *Service) CheckValidUser(username, password, siteId string) (*shared_dto
 		return nil, err
 	}
 
-	if !shared_utils.CheckHashPassword(password, user.Password) {
+	if !shared.CheckHashPassword(password, user.Password) {
 		return nil, errors.New("invalid username or password")
 	}
 
 	return user, nil
 }
 
-func (s *Service) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*shared_dto.UserDTO, error) {
-	hashedPassword, err := shared_utils.HashPassword(account.Password)
+func (s *Service) CreateNewAccount(account *shared.RegisterRequestDTO) (*shared.UserDTO, error) {
+	hashedPassword, err := shared.HashPassword(account.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser := shared_dto.UserDTO{
+	newUser := shared.UserDTO{
 		Username:    account.Username,
 		Password:    hashedPassword,
 		PhoneNumber: account.PhoneNumber,
@@ -58,7 +58,7 @@ func (s *Service) CreateNewAccount(account *shared_dto.RegisterRequestDTO) (*sha
 	return s.userService.CreateNewUser(&newUser)
 }
 
-func (s *Service) FindUserByUsername(username, siteId string) (*shared_dto.UserDTO, error) {
+func (s *Service) FindUserByUsername(username, siteId string) (*shared.UserDTO, error) {
 	return s.userService.FindUserByUsername(username, siteId)
 }
 

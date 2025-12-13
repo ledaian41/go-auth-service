@@ -3,18 +3,18 @@ package auth
 import (
 	"context"
 	"errors"
-	shared_interface "go-auth-service/internal/shared/interface"
-	"go-auth-service/proto"
+	"go-auth-service/internal/shared"
+	auth "go-auth-service/proto"
 )
 
 type GrpcHandler struct {
 	auth.UnimplementedAuthServer
-	siteService  shared_interface.SiteService
-	authService  shared_interface.AuthService
-	tokenService shared_interface.TokenService
+	siteService  shared.SiteService
+	authService  shared.AuthService
+	tokenService shared.TokenService
 }
 
-func New(siteService shared_interface.SiteService, authService shared_interface.AuthService, tokenService shared_interface.TokenService) *GrpcHandler {
+func New(siteService shared.SiteService, authService shared.AuthService, tokenService shared.TokenService) *GrpcHandler {
 	return &GrpcHandler{siteService: siteService, authService: authService, tokenService: tokenService}
 }
 
@@ -33,12 +33,13 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 		return nil, err
 	}
 
-	refreshToken, err := handler.authService.GenerateRefreshToken(user)
+	sessionId := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
 	if err != nil {
 		return nil, err
 	}
 
-	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
 	if err != nil {
 		return nil, errors.New("error saving refresh token")
 	}
@@ -62,10 +63,7 @@ func (handler *GrpcHandler) RefreshToken(_ context.Context, req *auth.RefreshTok
 		return nil, err
 	}
 
-	sessionId := handler.tokenService.ValidateRefreshToken(req.RefreshToken)
-	if len(sessionId) == 0 {
-		return nil, errors.New("error saving refresh token")
-	}
+	sessionId := claims["jti"].(string)
 
 	siteId := req.Site
 	if siteId == "" {
@@ -119,15 +117,15 @@ func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.
 }
 
 func (handler *GrpcHandler) Logout(_ context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
-	siteId := req.Site
-	if siteId == "" {
-		siteId = "app"
+	claims, err := handler.authService.ValidateRefreshToken(req.RefreshToken)
+	if err != nil {
+		return &auth.LogoutResponse{Status: false}, nil
 	}
 
-	sessionId := handler.tokenService.RevokeRefreshToken(req.RefreshToken)
-	if len(sessionId) > 0 {
-		handler.authService.RevokeSessionId(sessionId)
-	}
+	sessionId := claims["jti"].(string)
+	handler.tokenService.RevokeRefreshToken(sessionId)
+	handler.authService.RevokeSessionId(sessionId)
+
 	return &auth.LogoutResponse{
 		Status: true,
 	}, nil

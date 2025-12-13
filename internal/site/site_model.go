@@ -1,6 +1,6 @@
 package site
 
-import "go-auth-service/internal/shared/dto"
+import "go-auth-service/internal/shared"
 
 type Site struct {
 	ID        string `json:"id"`
@@ -8,8 +8,8 @@ type Site struct {
 	SecretKey string `json:"secret_key"`
 }
 
-func (site *Site) ToDTO() shared_dto.SiteDTO {
-	return shared_dto.SiteDTO{
+func (site *Site) ToDTO() shared.SiteDTO {
+	return shared.SiteDTO{
 		ID:        site.ID,
 		SecretKey: site.SecretKey,
 	}

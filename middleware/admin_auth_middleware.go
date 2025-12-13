@@ -3,11 +3,11 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"go-auth-service/internal/shared/interface"
+	"go-auth-service/internal/shared"
 	"net/http"
 )
 
-func AdminAuthMiddleware(authService shared_interface.AuthService) gin.HandlerFunc {
+func AdminAuthMiddleware(authService shared.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, exists := c.Get("claims")
 		if !exists {

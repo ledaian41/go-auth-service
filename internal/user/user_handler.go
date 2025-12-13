@@ -1,17 +1,17 @@
 package user
 
 import (
-	"go-auth-service/internal/shared/interface"
+	"go-auth-service/internal/shared"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	userService shared_interface.UserService
+	userService shared.UserService
 }
 
-func NewUserHandler(userService shared_interface.UserService) *UserHandler {
+func NewUserHandler(userService shared.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 

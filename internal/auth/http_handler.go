@@ -1,9 +1,7 @@
 package auth
 
 import (
-	"go-auth-service/internal/shared/dto"
-	"go-auth-service/internal/shared/interface"
-	"go-auth-service/internal/shared/utils"
+	"go-auth-service/internal/shared"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,16 +9,16 @@ import (
 )
 
 type HttpHandler struct {
-	authService  shared_interface.AuthService
-	tokenService shared_interface.TokenService
+	authService  shared.AuthService
+	tokenService shared.TokenService
 }
 
-func NewAuthHandler(authService shared_interface.AuthService, tokenService shared_interface.TokenService) *HttpHandler {
+func NewAuthHandler(authService shared.AuthService, tokenService shared.TokenService) *HttpHandler {
 	return &HttpHandler{authService: authService, tokenService: tokenService}
 }
 
 func (handler *HttpHandler) Register(c *gin.Context) {
-	var newAccount shared_dto.RegisterRequestDTO
+	var newAccount shared.RegisterRequestDTO
 	if err := c.ShouldBind(&newAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -32,19 +30,20 @@ func (handler *HttpHandler) Register(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := handler.authService.GenerateRefreshToken(user)
+	sessionId := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
 
-	site, _ := shared_utils.ReadSiteContext(c)
+	site, _ := shared.ReadSiteContext(c)
 	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
@@ -54,7 +53,7 @@ func (handler *HttpHandler) Register(c *gin.Context) {
 }
 
 func (handler *HttpHandler) Login(c *gin.Context) {
-	var loginAccount shared_dto.LoginRequestDTO
+	var loginAccount shared.LoginRequestDTO
 	if err := c.ShouldBind(&loginAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -67,19 +66,20 @@ func (handler *HttpHandler) Login(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := handler.authService.GenerateRefreshToken(user)
+	sessionId := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	sessionId, err := handler.tokenService.StoreRefreshToken(user.Username, refreshToken)
+	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
 
-	site, _ := shared_utils.ReadSiteContext(c)
+	site, _ := shared.ReadSiteContext(c)
 	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
@@ -94,10 +94,16 @@ func (handler *HttpHandler) Logout(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
 		return
 	}
-	sessionId := handler.tokenService.RevokeRefreshToken(refreshToken)
-	if len(sessionId) > 0 {
-		handler.authService.RevokeSessionId(sessionId)
+
+	claims, err := handler.authService.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid token"})
+		return
 	}
+
+	sessionId := claims["jti"].(string)
+	handler.tokenService.RevokeRefreshToken(sessionId)
+	handler.authService.RevokeSessionId(sessionId)
 	DestroyCookieToken(c)
 	c.String(http.StatusOK, "Signed out")
 }
@@ -115,13 +121,9 @@ func (handler *HttpHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	sessionId := handler.tokenService.ValidateRefreshToken(refreshToken)
-	if len(sessionId) == 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid refresh token"})
-		return
-	}
+	sessionId := claims["jti"].(string)
 
-	site, _ := shared_utils.ReadSiteContext(c)
+	site, _ := shared.ReadSiteContext(c)
 	if site.ID != claims["site"].(string) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "site not matched"})
 		return

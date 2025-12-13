@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-auth-service/internal/shared/interface"
+	"go-auth-service/internal/shared"
 	"net/http"
 	"strings"
 )
 
-func SiteMiddleware(siteService shared_interface.SiteService) gin.HandlerFunc {
+func SiteMiddleware(siteService shared.SiteService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		siteId := c.Param("siteId")
 		if strings.Trim(siteId, " ") == "" {

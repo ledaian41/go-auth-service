@@ -1,25 +1,21 @@
 package user
 
 import (
-	"encoding/json"
-	"fmt"
-	"go-auth-service/internal/shared/dto"
-	"io/ioutil"
-	"os"
+	"go-auth-service/internal/shared"
 	"strings"
 )
 
 type User struct {
 	ID           string `gorm:"primary_key" json:"id"`
-	Username     string `gorm:"unique" json:"username"`
+	Username     string `gorm:"uniqueIndex:idx_site_username" json:"username"`
 	Password     string `json:"password"`
 	Name         string `json:"name"`
 	DOB          string `json:"dob"`
 	PhoneNumber  string `json:"phone_number"`
-	Email        string `gorm:"unique" json:"email"`
+	Email        string `gorm:"uniqueIndex:idx_site_email" json:"email"`
 	Avatar       string `json:"avatar"`
 	Role         string `json:"role"`
-	Site         string `json:"site"`
+	Site         string `gorm:"uniqueIndex:idx_site_username;uniqueIndex:idx_site_email" json:"site"`
 	TokenVersion int    `gorm:"default:0" json:"token_version"`
 }
 
@@ -45,8 +41,8 @@ func (user User) Response() UserResponse {
 	}
 }
 
-func (user User) ToDTO() shared_dto.UserDTO {
-	return shared_dto.UserDTO{
+func (user User) ToDTO() shared.UserDTO {
+	return shared.UserDTO{
 		Username:    user.Username,
 		Password:    user.Password,
 		Name:        user.Name,
@@ -68,27 +64,4 @@ func (user User) HasAnyRole(roles []string) bool {
 		}
 	}
 	return false
-}
-
-var UserList []User
-
-func LoadUsersFromFile(filePath string) error {
-	// Check if file exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return fmt.Errorf("file does not exist")
-	}
-
-	// Read the file contents
-	fileData, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	// Unmarshal the JSON data into the UserList slice
-	err = json.Unmarshal(fileData, &UserList)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

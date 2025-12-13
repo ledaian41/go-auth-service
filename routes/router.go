@@ -11,8 +11,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
@@ -37,7 +37,7 @@ func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 	tokenService := token.NewTokenService(db)
 	tokenService.MigrateDatabase()
 
-	authService := auth.NewAuthService(redisClient, userService)
+	authService := auth.NewAuthService(redisClient, userService, tokenService)
 
 	AuthHandler := auth.NewAuthHandler(authService, tokenService)
 	r.GET("/:siteId/jwt", middleware.AuthMiddleware(authService), AuthHandler.JWT)

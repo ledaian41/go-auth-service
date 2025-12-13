@@ -1,4 +1,4 @@
-package shared_dto
+package shared
 
 import "time"
 

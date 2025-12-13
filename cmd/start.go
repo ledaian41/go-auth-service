@@ -31,9 +31,10 @@ func startGrpc() {
 	siteService := site.NewSiteService()
 	userService := user.NewUserService(db)
 	userService.MigrateDatabase()
+	_ = userService.SeedUsers("./internal/user/userData.json")
 	tokenService := token.NewTokenService(db)
 	tokenService.MigrateDatabase()
-	authService := auth.NewAuthService(redisClient, userService)
+	authService := auth.NewAuthService(redisClient, userService, tokenService)
 	grpcHandler := auth.New(siteService, authService, tokenService)
 
 	proto.RegisterAuthServer(grpcServer, grpcHandler)
@@ -46,8 +47,6 @@ func startGrpc() {
 func startHttp() {
 	db := config.InitDatabase()
 	redisClient := config.InitRedisClient()
-
-	_ = user.LoadUsersFromFile("./internal/user/userData.json")
 
 	r := routes.SetupRouter(db, redisClient)
 

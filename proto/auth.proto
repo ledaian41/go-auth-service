@@ -58,6 +58,6 @@ message LogoutRequest {
   string site = 2;
 }
 
-message LogoutResponse{
+message LogoutResponse {
   bool status = 1;
 }
