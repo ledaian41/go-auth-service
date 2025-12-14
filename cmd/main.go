@@ -2,6 +2,9 @@ package main
 
 import (
 	"go-auth-service/config"
+	"go-auth-service/internal/site"
+	"go-auth-service/internal/token"
+	"go-auth-service/internal/user"
 )
 
 // @title Authentication Service API
@@ -12,9 +15,24 @@ import (
 func main() {
 	config.LoadConfig()
 
-	go startHttp() // Run Gin HTTP server
+	db := config.InitDatabase(config.Env.DbHost, config.Env.DbUser, config.Env.DbPwd)
+	redisClient := config.InitRedisClient()
 
-	go startGrpc() // Run gRPC server
+	// Migrations and Seeding
+	siteService := site.NewSiteService(db)
+	siteService.MigrateDatabase()
+	_ = siteService.SeedSites("./internal/site/siteData.json")
+
+	userService := user.NewUserService(db)
+	userService.MigrateDatabase()
+	_ = userService.SeedUsers("./internal/user/userData.json")
+
+	tokenService := token.NewTokenService(db)
+	tokenService.MigrateDatabase()
+
+	go startHttp(db, redisClient) // Run Gin HTTP server
+
+	go startGrpc(db, redisClient) // Run gRPC server
 
 	select {}
 }

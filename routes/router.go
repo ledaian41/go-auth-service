@@ -28,14 +28,12 @@ func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	siteService := site.NewSiteService()
+	siteService := site.NewSiteService(db)
 	r.Use(middleware.SiteMiddleware(siteService))
 
 	userService := user.NewUserService(db)
-	userService.MigrateDatabase()
 
 	tokenService := token.NewTokenService(db)
-	tokenService.MigrateDatabase()
 
 	authService := auth.NewAuthService(redisClient, userService, tokenService)
 

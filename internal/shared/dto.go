@@ -9,7 +9,7 @@ type UserDTO struct {
 	PhoneNumber  string `json:"phone_number"`
 	Email        string `json:"email"`
 	Role         string `json:"role"`
-	Site         string `json:"site"`
+	Site         string `json:"site" binding:"required"`
 	TokenVersion int    `json:"token_version"`
 }
 

@@ -3,7 +3,7 @@ package site
 import "go-auth-service/internal/shared"
 
 type Site struct {
-	ID        string `json:"id"`
+	ID        string `json:"id" gorm:"primaryKey"`
 	Name      string `json:"name"`
 	SecretKey string `json:"secret_key"`
 }

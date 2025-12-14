@@ -14,12 +14,10 @@ import (
 	"os"
 
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
-func startGrpc() {
-	db := config.InitDatabase()
-	redisClient := config.InitRedisClient()
-
+func startGrpc(db *gorm.DB, redisClient *config.RedisClient) {
 	tcpPort := os.Getenv("TCP_PORT")
 	lis, err := net.Listen("tcp", ":"+tcpPort)
 	if err != nil {
@@ -28,12 +26,9 @@ func startGrpc() {
 
 	grpcServer := grpc.NewServer()
 
-	siteService := site.NewSiteService()
+	siteService := site.NewSiteService(db)
 	userService := user.NewUserService(db)
-	userService.MigrateDatabase()
-	_ = userService.SeedUsers("./internal/user/userData.json")
 	tokenService := token.NewTokenService(db)
-	tokenService.MigrateDatabase()
 	authService := auth.NewAuthService(redisClient, userService, tokenService)
 	grpcHandler := auth.New(siteService, authService, tokenService)
 
@@ -44,10 +39,7 @@ func startGrpc() {
 	}
 }
 
-func startHttp() {
-	db := config.InitDatabase()
-	redisClient := config.InitRedisClient()
-
+func startHttp(db *gorm.DB, redisClient *config.RedisClient) {
 	r := routes.SetupRouter(db, redisClient)
 
 	port := os.Getenv("APP_PORT")

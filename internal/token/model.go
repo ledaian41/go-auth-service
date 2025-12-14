@@ -3,7 +3,7 @@ package token
 import "time"
 
 type UserToken struct {
-	ID        string    `gorm:"primary_key" json:"id"`
+	ID        string    `json:"id" gorm:"primary_key"`
 	UserID    string    `json:"user_id"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 }
