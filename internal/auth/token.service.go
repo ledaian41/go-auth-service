@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-auth-service/config"
 	"go-auth-service/internal/shared"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -175,10 +176,12 @@ func (s *Service) RotateRefreshToken(site *shared.SiteDTO, oldRefreshToken strin
 	}
 
 	// 8. Store New JTI
-	_, err = s.tokenService.StoreRefreshToken(newJti, user.Username, site.ID)
-	if err != nil {
-		return "", "", errors.New("failed to store refresh token")
-	}
+	go func() {
+		_, err := s.tokenService.StoreRefreshToken(jti, user.Username, site.ID)
+		if err != nil {
+			log.Printf("store_refresh_token_failed, jti %s, error: %v", jti, err)
+		}
+	}()
 
 	// 9. Generate New Access Token
 	newAccessToken, err := s.GenerateAccessToken(site.SecretKey, newJti, user)

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"go-auth-service/internal/shared"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -74,11 +75,12 @@ func (handler *HttpHandler) Login(c *gin.Context) {
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	_, err = handler.tokenService.StoreRefreshToken(jti, user.Username, site.ID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
-		return
-	}
+	go func() {
+		_, err := handler.tokenService.StoreRefreshToken(jti, user.Username, site.ID)
+		if err != nil {
+			log.Printf("store_refresh_token_failed, jti %s, error: %v", jti, err)
+		}
+	}()
 
 	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, jti, user)
 	if err != nil {

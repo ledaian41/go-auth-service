@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-auth-service/internal/shared"
 	auth "go-auth-service/proto"
+	"log"
 )
 
 type GrpcHandler struct {
@@ -39,10 +40,12 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 		return nil, err
 	}
 
-	_, err = handler.tokenService.StoreRefreshToken(jti, user.Username, siteId)
-	if err != nil {
-		return nil, errors.New("error saving refresh token")
-	}
+	go func() {
+		_, err := handler.tokenService.StoreRefreshToken(jti, user.Username, siteId)
+		if err != nil {
+			log.Printf("store_refresh_token_failed, jti %s, error: %v", jti, err)
+		}
+	}()
 
 	site := handler.siteService.CheckSiteExists(siteId)
 	if site == nil {
