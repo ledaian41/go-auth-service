@@ -2,7 +2,6 @@ package user
 
 import (
 	"go-auth-service/internal/shared"
-	"go-auth-service/internal/token"
 	"strings"
 )
 
@@ -18,7 +17,6 @@ type User struct {
 	Role         string `json:"role"`
 	Site         string `json:"site" gorm:"uniqueIndex:idx_site_username;uniqueIndex:idx_site_email"`
 	TokenVersion int    `json:"token_version" gorm:"default:0"`
-	Tokens       []token.UserToken
 }
 
 type UserResponse struct {

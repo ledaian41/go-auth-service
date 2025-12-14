@@ -33,13 +33,13 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 		return nil, err
 	}
 
-	sessionId := shared.RandomID()
-	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
+	jti := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, jti)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
+	_, err = handler.tokenService.StoreRefreshToken(jti, user.Username, siteId)
 	if err != nil {
 		return nil, errors.New("error saving refresh token")
 	}
@@ -49,7 +49,7 @@ func (handler *GrpcHandler) Login(_ context.Context, req *auth.LoginRequest) (*a
 		return nil, errors.New("site not found")
 	}
 
-	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, jti, user)
 	return &auth.LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 

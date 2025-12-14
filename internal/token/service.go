@@ -28,10 +28,11 @@ func (s *TokenService) ValidateRefreshToken(id string) string {
 	return token.ID
 }
 
-func (s *TokenService) StoreRefreshToken(username, id string) (string, error) {
+func (s *TokenService) StoreRefreshToken(id, username, siteId string) (string, error) {
 	token := UserToken{
-		ID:     id,
-		UserID: username,
+		ID:       id,
+		UserName: username,
+		SiteID:   siteId,
 	}
 	if err := s.db.Create(&token).Error; err != nil {
 		log.Println("error create token in database", err)

@@ -4,6 +4,7 @@ import "time"
 
 type UserToken struct {
 	ID        string    `json:"id" gorm:"primary_key"`
-	UserID    string    `json:"user_id"`
+	SiteID    string    `json:"site_id"`
+	UserName  string    `json:"user_name"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 }

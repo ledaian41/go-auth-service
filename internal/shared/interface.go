@@ -28,6 +28,6 @@ type UserService interface {
 
 type TokenService interface {
 	ValidateRefreshToken(id string) string
-	StoreRefreshToken(username, id string) (string, error)
+	StoreRefreshToken(id, username, siteId string) (string, error)
 	RevokeRefreshToken(id string) string
 }

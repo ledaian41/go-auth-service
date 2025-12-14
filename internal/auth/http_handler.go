@@ -18,6 +18,7 @@ func NewAuthHandler(authService shared.AuthService, tokenService shared.TokenSer
 }
 
 func (handler *HttpHandler) Register(c *gin.Context) {
+	site, _ := shared.ReadSiteContext(c)
 	var newAccount shared.RegisterRequestDTO
 	if err := c.ShouldBind(&newAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -30,21 +31,20 @@ func (handler *HttpHandler) Register(c *gin.Context) {
 		return
 	}
 
-	sessionId := shared.RandomID()
-	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
+	jti := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, jti)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
+	_, err = handler.tokenService.StoreRefreshToken(jti, user.Username, site.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
 
-	site, _ := shared.ReadSiteContext(c)
-	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, jti, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
@@ -53,6 +53,7 @@ func (handler *HttpHandler) Register(c *gin.Context) {
 }
 
 func (handler *HttpHandler) Login(c *gin.Context) {
+	site, _ := shared.ReadSiteContext(c)
 	var loginAccount shared.LoginRequestDTO
 	if err := c.ShouldBind(&loginAccount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -66,21 +67,20 @@ func (handler *HttpHandler) Login(c *gin.Context) {
 		return
 	}
 
-	sessionId := shared.RandomID()
-	refreshToken, err := handler.authService.GenerateRefreshToken(user, sessionId)
+	jti := shared.RandomID()
+	refreshToken, err := handler.authService.GenerateRefreshToken(user, jti)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate refresh token failed"})
 		return
 	}
 	SetCookieToken(c, refreshToken)
-	_, err = handler.tokenService.StoreRefreshToken(user.Username, sessionId)
+	_, err = handler.tokenService.StoreRefreshToken(jti, user.Username, site.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "error saving refresh token"})
 		return
 	}
 
-	site, _ := shared.ReadSiteContext(c)
-	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, sessionId, user)
+	accessToken, err := handler.authService.GenerateAccessToken(site.SecretKey, jti, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "generate access token failed"})
 		return
