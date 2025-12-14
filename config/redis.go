@@ -3,8 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"log"
+	"strings"
+	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type RedisClient struct {
@@ -13,15 +16,54 @@ type RedisClient struct {
 }
 
 func InitRedisClient() *RedisClient {
-	rdb := redis.NewClient(&redis.Options{
-		Addr: Env.RedisHost,
-	})
+	// Support both formats:
+	// 1) Env.RedisHost = "redis://:pwd@host:6379/0" or "rediss://..." (recommended)
+	// 2) Env.RedisHost = "host:port" + Env.RedisPwd
+	var opts *redis.Options
 
-	_, err := rdb.Ping(context.Background()).Result()
-	if err != nil {
-		log.Println("Error connecting to Redis", err)
+	if strings.HasPrefix(Env.RedisHost, "redis://") || strings.HasPrefix(Env.RedisHost, "rediss://") {
+		parsed, err := redis.ParseURL(Env.RedisHost)
+		if err != nil {
+			log.Printf("Error parsing Redis URL: %v", err)
+		} else {
+			opts = parsed
+		}
 	}
-	log.Println("Connected to Redis")
+
+	if opts == nil {
+		// Backward-compatible: Addr + Password
+		opts = &redis.Options{
+			Addr:         Env.RedisHost,
+			Password:     Env.RedisPwd,
+			DB:           0,
+			PoolSize:     10,
+			MinIdleConns: 2,
+			DialTimeout:  5 * time.Second,
+			ReadTimeout:  3 * time.Second,
+			WriteTimeout: 3 * time.Second,
+		}
+	}
+
+	// If password is provided separately, prefer it (useful when Env.RedisHost is host:port).
+	if Env.RedisPwd != "" {
+		opts.Password = Env.RedisPwd
+	}
+
+	// IMPORTANT:
+	// Don't force TLS for every Redis endpoint.
+	// - If your Redis supports TLS, use a `rediss://` URL in Env.RedisHost so ParseURL enables TLS.
+	// - If your Redis is plain TCP (most local/dev setups), use `redis://` or host:port.
+
+	rdb := redis.NewClient(opts)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
+		log.Printf("Error connecting to Redis: %v", err)
+	} else {
+		log.Println("✅ Connected to Redis")
+	}
 
 	return &RedisClient{
 		Client: rdb,

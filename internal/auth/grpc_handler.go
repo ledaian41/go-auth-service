@@ -106,14 +106,14 @@ func (handler *GrpcHandler) JWT(_ context.Context, req *auth.JwtRequest) (*auth.
 }
 
 func (handler *GrpcHandler) Logout(_ context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
-	claims, err := handler.authService.ValidateRefreshToken(req.RefreshToken)
+	claims, err := handler.authService.ParseRefreshToken(req.RefreshToken)
 	if err != nil {
-		return &auth.LogoutResponse{Status: false}, nil
+		return &auth.LogoutResponse{Status: true}, nil
 	}
 
 	sessionId := claims["jti"].(string)
-	handler.tokenService.RevokeRefreshToken(sessionId)
 	handler.authService.RevokeSessionId(sessionId)
+	go handler.tokenService.RevokeRefreshToken(sessionId)
 
 	return &auth.LogoutResponse{
 		Status: true,

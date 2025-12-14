@@ -13,6 +13,7 @@ type AuthService interface {
 	GenerateAccessToken(siteSecretKey, sessionId string, user *UserDTO) (string, error)
 	ValidateAccessToken(site *SiteDTO, tokenStr string) (jwt.MapClaims, error)
 	GenerateRefreshToken(user *UserDTO, sessionId string) (string, error)
+	ParseRefreshToken(tokenString string) (jwt.MapClaims, error)
 	ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error)
 	CheckValidUser(username, password, siteId string) (*UserDTO, error)
 	CheckAdminRole(role []interface{}) bool

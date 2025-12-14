@@ -19,6 +19,7 @@ const (
 type AppConfig struct {
 	SecretKey string
 	RedisHost string
+	RedisPwd  string
 	TcpPort   string
 	DbHost    string
 	DbUser    string
@@ -35,6 +36,7 @@ func LoadConfig() {
 	Env = &AppConfig{
 		SecretKey: os.Getenv("SECRET_KEY"),
 		RedisHost: os.Getenv("REDIS_HOST"),
+		RedisPwd:  os.Getenv("REDIS_PASSWORD"),
 		TcpPort:   os.Getenv("TCP_PORT"),
 		DbHost:    os.Getenv("DATABASE_HOST"),
 		DbUser:    os.Getenv("DATABASE_USER"),

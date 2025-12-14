@@ -91,19 +91,19 @@ func (handler *HttpHandler) Login(c *gin.Context) {
 func (handler *HttpHandler) Logout(c *gin.Context) {
 	refreshToken, err := GetCookieToken(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "no refresh token"})
+		c.String(http.StatusOK, "Signed out")
 		return
 	}
 
-	claims, err := handler.authService.ValidateRefreshToken(refreshToken)
+	claims, err := handler.authService.ParseRefreshToken(refreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid token"})
+		c.String(http.StatusOK, "Signed out")
 		return
 	}
 
 	sessionId := claims["jti"].(string)
-	handler.tokenService.RevokeRefreshToken(sessionId)
 	handler.authService.RevokeSessionId(sessionId)
+	go handler.tokenService.RevokeRefreshToken(sessionId)
 	DestroyCookieToken(c)
 	c.String(http.StatusOK, "Signed out")
 }

@@ -22,6 +22,20 @@ func (s *Service) GenerateRefreshToken(user *shared.UserDTO, sessionId string) (
 	return token.SignedString([]byte(config.Env.SecretKey))
 }
 
+func (s *Service) ParseRefreshToken(tokenString string) (jwt.MapClaims, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+
+	return claims, nil
+}
+
 func (s *Service) ValidateRefreshToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
