@@ -21,6 +21,7 @@ func SetupRouter(db *gorm.DB, redisClient *config.RedisClient) *gin.Engine {
 
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
+	r.Use(middleware.RateLimitMiddleware())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
